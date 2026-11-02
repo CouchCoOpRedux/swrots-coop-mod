@@ -1,3 +1,5 @@
+![SWROTS Unofficial Co-Op Mod: two-player couch co-op for the original Xbox](docs/banner.png)
+
 # SWROTS (UNOFFICIAL) Co-Op Mod
 
 **Unofficial two-player couch co-op for the story campaign of *Star Wars: Episode III – Revenge of the Sith* on the original Xbox (NTSC-U).**
