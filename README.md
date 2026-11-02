@@ -1,9 +1,24 @@
-# CouchCoOpRedux
+# SWROTS UNOFFICIAL CO-OP MOD
 
 **Unofficial two-player couch co-op for the story campaign of *Star Wars: Episode III – Revenge of the Sith* on the original Xbox (NTSC-U).**
 
-Plug a second controller into **port 2**. In any single-player story mission, **hold Back on controller 2 for about a second** to join in; hold it again to leave. Player 2 starts every level as the game's normal computer companion and takes over from there.
-On the boss duels, player 2 takes over the boss. All experience goes to player 1's save.
+**How To Play**
+With player 1 in **port 1**, plug a second controller into **port 2**. In any single-player story mission, after letting the level load for a few seconds, **hold Back on controller 2 for about a second** to join in; hold it again to leave. Player 2 starts every level as the game's normal computer companion, or spawns in a character if necessary and takes over from there. On the boss duels, player 2 takes over the boss.
+
+**Fully Functional Player 2**
+Player 2 is a fully functioning character with matching power set to Player 1 (where applicable, level 15 is a suprise!). Player 2 has his own health, force, and combo meter, and at the end of the level all experience/kills go to Player 1's Single Player save. Player 2 can also interact with consumables, secret objects, buttons, and story objects like doors and panels.
+
+Player 2 is attached to player 1 by a tether and will be teleported back to him if he gets too far. Only player 1 can progress the level.
+
+Player 2 can interact with some "force jump" circles but this can sometimes cause a softlock in the level so while it does work, you should have player 1 use most force jumps. Some levels may require both characters to jump, or just pull along player 2 with the tether.
+
+**Full Drop-In Drop-Out Support**
+On companion levels, drop out returns control of the companion to the level ai and returns their power set to normal.
+On spawn in levels, drop out removes the spawned character from play but health and other values are stored.
+On boss levels, player 2 can drop in and out as all boss characters including both Serra and Cin in Mission 12.
+
+**Co-Op Camera**
+When the second player drops in, the camera pans and pulls back to try to keep both characters in frame. This can sometimes result in the camera being behind level geometry.
 
 This is a binary patch of the game's own executable (`default.xbe`) plus a replacement start-up notice screen. **It contains no game files**: you need your own copy of the game, and the patcher refuses anything but the exact NTSC-U release.
 
