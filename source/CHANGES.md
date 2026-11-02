@@ -203,8 +203,8 @@ tanks, the CPU companion getting his own powers back on drop-out.
   particular length or size. Built with `sfdmux.py` (each picture starts a new PES packet, timestamps follow the retail file; remuxing the retail stream gives the same
   decoded frames and timestamps within 1 tick). The released screen is original artwork (starfield, Cinzel and Inter type, `movie/` in the release); a private version
   that keeps the game's logo and cityscape exists but is not released. The screen says "press Back": the code needs Back held for about a second (README says so).
-* Release (CouchCoOpRedux v0.36; the mod build number is 36): `patcher/couchcoop_patch.py` (ISO mode through extract-xiso, folder mode, xbe-only mode; checks the MD5 of default.xbe and
-  Legal_XBOX.sfd, refuses anything else, safe to run twice), `xdelta/default.xbe.xdelta` (13 KB, applies to the retail xbe), README, GPL-3.0-or-later. No game data and no
+* Release (SWROTS (UNOFFICIAL) Co-Op Mod v0.36; the mod build number is 36): `patcher/swrots-coop-mod_patch.py` (ISO mode through extract-xiso, folder mode, xbe-only mode; checks the MD5 of default.xbe and
+  Legal_XBOX.sfd, refuses anything else, safe to run twice), `xdelta/swrots-coop-mod.xdelta` (13 KB, applies to the retail xbe), README, GPL-3.0-or-later. No game data and no
   patched default.xbe are shipped. Tested here on a synthetic ISO built with extract-xiso 2.7.1: unpacked, patched, packed again, files and checksums match; not yet run on
   the real game ISO.
 

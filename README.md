@@ -1,4 +1,4 @@
-# SWROTS UNOFFICIAL CO-OP MOD
+# SWROTS (UNOFFICIAL) Co-Op Mod
 
 **Unofficial two-player couch co-op for the story campaign of *Star Wars: Episode III – Revenge of the Sith* on the original Xbox (NTSC-U).**
 
@@ -38,29 +38,29 @@ This is a binary patch of the game's own executable (`default.xbe`) plus a repla
 Open a terminal in the `patcher` folder and run:
 
 ```
-python couchcoop_patch.py "Star Wars Episode III.iso"
+python swrots-coop-mod_patch.py "Star Wars Episode III.iso"
 ```
 
-This unpacks the ISO next to the output, patches it and packs `Star Wars Episode III_CouchCoOpRedux.iso`. You need as much free disk space as the game takes. Put `extract-xiso` on your `PATH` or next to the script, or pass `--extract-xiso <path>`. Your original ISO is never changed.
+This unpacks the ISO next to the output, patches it and packs `Star Wars Episode III_swrots-coop-mod.iso`. You need as much free disk space as the game takes. Put `extract-xiso` on your `PATH` or next to the script, or pass `--extract-xiso <path>`. Your original ISO is never changed.
 
 ### 2. Patch an extracted game folder
 
 ```
-python couchcoop_patch.py --folder "C:\Games\SWEP3"
+python swrots-coop-mod_patch.py --folder "C:\Games\SWEP3"
 ```
 
 Patches the folder in place. The two original files are first saved in `C:\Games\SWEP3_original_files`. Then build the ISO the way you usually do (`extract-xiso -c`).
 
 ### 3. Only the executable (`default.xbe`), for people who know what they are doing
 
-The `xdelta/default.xbe.xdelta` patch contains every byte this mod changes in the executable and nothing else. Apply it to the original `default.xbe` with any xdelta tool:
+The `xdelta/swrots-coop-mod.xdelta` patch contains every byte this mod changes in the executable and nothing else. Apply it to the original `default.xbe` with any xdelta tool:
 
 ```
-xdelta3 -d -s default_original.xbe default.xbe.xdelta default.xbe
+xdelta3 -d -s default_original.xbe swrots-coop-mod.xdelta default.xbe
 ```
 
 Expected MD5s: original `6460ef37862de3af364a0563a0a18c4e`, patched `8ef778d829352457dad05d7abe785fa8`.
-`python couchcoop_patch.py --xbe default.xbe -o patched.xbe` gives the same file without xdelta.
+`python swrots-coop-mod_patch.py --xbe default.xbe -o patched.xbe` gives the same file without xdelta.
 
 The start-up screen is optional and separate: it only needs a replacement of `movies/Splash_Movies/Legal_XBOX.sfd`, which the patcher builds from your own file's headers. Without it the mod works the same, you just see the original legal screen.
 

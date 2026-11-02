@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
 """
-CouchCoOpRedux patcher: adds two-player couch co-op to Star Wars: Episode III - Revenge of the Sith
+SWROTS (UNOFFICIAL) Co-Op Mod patcher: adds two-player couch co-op to Star Wars: Episode III - Revenge of the Sith
 (original Xbox, NTSC-U). It changes two files of your own copy of the game:
 
   default.xbe                              the game executable (the co-op code is appended to it)
@@ -9,12 +9,12 @@ CouchCoOpRedux patcher: adds two-player couch co-op to Star Wars: Episode III - 
 
 Nothing is downloaded and no game files are shipped: the patcher needs YOUR game.
 
-  python couchcoop_patch.py game.iso                  patch an ISO     -> game_CouchCoOpRedux.iso
-  python couchcoop_patch.py game.iso -o out.iso       ... with a name of your choice
-  python couchcoop_patch.py --folder GAMEDIR          patch an extracted game folder in place
+  python swrots-coop-mod_patch.py game.iso                  patch an ISO     -> game_swrots-coop-mod.iso
+  python swrots-coop-mod_patch.py game.iso -o out.iso       ... with a name of your choice
+  python swrots-coop-mod_patch.py --folder GAMEDIR          patch an extracted game folder in place
                                                       (the two original files are first saved in a
                                                       folder named <GAMEDIR>_original_files)
-  python couchcoop_patch.py --xbe default.xbe -o new.xbe    only the executable (no movie, no ISO tools)
+  python swrots-coop-mod_patch.py --xbe default.xbe -o new.xbe    only the executable (no movie, no ISO tools)
 
 ISO mode needs extract-xiso (https://github.com/XboxDev/extract-xiso): put it on your PATH, next to this
 script, or give its location with --extract-xiso. The ISO is unpacked into a temporary folder next to the
@@ -163,7 +163,7 @@ def run(cmd):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="CouchCoOpRedux patcher (%s)" % VERSION)
+    ap = argparse.ArgumentParser(description="SWROTS (UNOFFICIAL) Co-Op Mod patcher (%s)" % VERSION)
     ap.add_argument("iso", nargs="?", help="the game's ISO (NTSC-U)")
     ap.add_argument("-o", "--output", help="output ISO (ISO mode) or patched default.xbe (--xbe mode)")
     ap.add_argument("--folder", help="patch an extracted game folder in place")
@@ -175,7 +175,7 @@ def main():
     modes = [bool(a.iso), bool(a.folder), bool(a.xbe)]
     if sum(modes) != 1:
         ap.error("give exactly one of: an ISO file, --folder, --xbe")
-    print("CouchCoOpRedux patcher, %s" % VERSION)
+    print("SWROTS (UNOFFICIAL) Co-Op Mod patcher, %s" % VERSION)
 
     if a.xbe:
         if not a.output:
@@ -196,13 +196,13 @@ def main():
     iso = a.iso
     if not os.path.isfile(iso):
         die("%s not found" % iso)
-    out = a.output or (os.path.splitext(iso)[0] + "_CouchCoOpRedux.iso")
+    out = a.output or (os.path.splitext(iso)[0] + "_swrots-coop-mod.iso")
     if os.path.abspath(out) == os.path.abspath(iso):
         die("the output must be a different file than the input ISO")
     if os.path.exists(out):
         die("%s already exists; remove it or choose another name with -o" % out)
     xiso = find_xiso(a.extract_xiso)
-    work = tempfile.mkdtemp(prefix="couchcoop_", dir=os.path.dirname(os.path.abspath(out)))
+    work = tempfile.mkdtemp(prefix="swrots-coop-mod_", dir=os.path.dirname(os.path.abspath(out)))
     try:
         game = os.path.join(work, "game")
         print("[1/3] unpacking the ISO (this takes a while)")
