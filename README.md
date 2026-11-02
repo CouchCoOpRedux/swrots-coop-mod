@@ -7,6 +7,15 @@ This is a binary patch of the game's own executable (`default.xbe`) plus a repla
 > Unofficial fan project. Not affiliated with, endorsed by, or connected to LucasArts, Lucasfilm Ltd. or Disney. *Star Wars* and *Revenge of the Sith* are trademarks of their owners.
 > It was made with the help of documentation from jedijosh920's [SWROTS-PC](https://github.com/jedijosh920/swrots-pc) port, and with Claude AI.
 
+## Features
+
+* Full Drop-In Drop-Out Player 2 in all 17 story missions
+* Player 2 has access to all the force powers of Player 1
+* Player 2 has matching health and max force to Player 1
+* Player 2's combo meter is restored and all kills go towards player 1's single player save xp
+* Player 2 is tethered to Player 1 and will respawn if they go to far
+* Altered camera when co-op is enabled to keep both characters onscreen
+
 ## Playing
 
 * **Join / leave:** hold **Back** on controller 2 for about 1 second, any time in a story level. Each level starts with the game's own companion, and nothing is remembered after a restart.
