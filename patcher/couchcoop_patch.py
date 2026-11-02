@@ -206,7 +206,8 @@ def main():
     try:
         game = os.path.join(work, "game")
         print("[1/3] unpacking the ISO (this takes a while)")
-        run([xiso, "-x", iso, "-d", game])
+        # options first: the Windows build of extract-xiso stops reading options at the first file name
+        run([xiso, "-d", game, "-x", iso])
         # extract-xiso -d puts the files directly in `game`; some versions add a folder named after the ISO
         if not find_ci(game, ("default.xbe",)):
             sub = [n for n in os.listdir(game) if os.path.isdir(os.path.join(game, n))]
