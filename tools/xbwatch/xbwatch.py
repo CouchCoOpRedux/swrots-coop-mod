@@ -921,6 +921,38 @@ def cmd_levelid(a):
         r.close()
 
 
+def cmd_headroom(a):
+    """Reads the headroom table of the headroom diagnostic build (free memory per level) and prints it; appends it to logs\\headroom.txt."""
+    r = Rsp(a.host, a.port)
+    try:
+        r.connect_handshake()
+        blk = r.read(num(a.base), 19 * 4 + 22 * 36)
+        if blk is None or struct.unpack_from("<I", blk, 0)[0] != 0x44414548:
+            raise SystemExit("the headroom block is not at %s (is this the headroom build, and is the game running?)" % a.base)
+        h = struct.unpack_from("<19I", blk, 0)
+        kb = lambda p: ("%d KB" % (p * 4)) if p else "-"
+        lines = ["time %s   console total %s   free right now %s   lowest ever %s (slot %d)   most free in menus %s" % (
+                 time.strftime("%Y-%m-%d %H:%M:%S"), kb(h[6]), kb(h[9]), kb(h[15]), h[16], kb(h[17])),
+                 "level   first(after load)   lowest   highest   P2 before -> after (P2 lowest)"]
+        for i in range(22):
+            first, mn, mx, last, p2b, p2a, p2m = struct.unpack_from("<7I", blk, 76 + i * 36 + 4)
+            n = struct.unpack_from("<I", blk, 76 + i * 36)[0]
+            if not n:
+                continue
+            name = "L%d" % i if i < 20 else ("L?" if i == 20 else "menu")
+            row = "%-5s  %-16s  %-8s %-8s" % (name, kb(first), kb(mn), kb(mx))
+            if p2a:
+                row += "  %s -> %s (%s)" % (kb(p2b), kb(p2a), kb(p2m))
+            lines.append(row)
+        here = os.path.dirname(os.path.abspath(__file__))
+        os.makedirs(os.path.join(here, "logs"), exist_ok=True)
+        with open(os.path.join(here, "logs", "headroom.txt"), "a") as f:
+            f.write("\n".join(lines) + "\n\n")
+        say("\n".join(lines))
+    finally:
+        r.close()
+
+
 def cmd_scriptid(a):
     """Reads the script recorder of mod version 34+ (what asked for player two's buttons, and the script instance bytes) and appends it to logs\\scripts.txt."""
     base = num(a.base)
@@ -1023,6 +1055,10 @@ def main():
     p.add_argument("--base", default="0x976000")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=1234)
+    p = sub.add_parser("headroom", help="print the free-memory table of the headroom diagnostic build")
+    p.add_argument("--base", default="0x976D80")
+    p.add_argument("--host", default="127.0.0.1")
+    p.add_argument("--port", type=int, default=1234)
     p = sub.add_parser("resume", help="let a game that was left stopped run again")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=1234)
@@ -1037,6 +1073,11 @@ def main():
     if a.cmd == "levelid":
         try:
             return cmd_levelid(a)
+        except GdbError as e:
+            raise SystemExit(str(e))
+    if a.cmd == "headroom":
+        try:
+            return cmd_headroom(a)
         except GdbError as e:
             raise SystemExit(str(e))
     if a.cmd == "scriptid":
