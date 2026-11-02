@@ -60,7 +60,7 @@ The start-up screen is optional and separate: it only needs a replacement of `mo
 
 ### Status
 
-All 17 Story Missions can now be played with a fully functional player 2 and each level has been initially run, but a full playthrough is still in progress. The author tested in xemu 0.8.139 (Windows x86_64) and on a softmodded original Xbox (levels 1, 6 and 14 on the console). Expect a few rough scripted moments; reports are welcome as issues. Known limits:
+All 17 Story Missions can now be played with a fully functional player 2 and each level has been initially run, but a full playthrough is still in progress. The author tested in xemu 0.8.139 (Windows x86_64) and on a softmodded original Xbox (levels 1, 6 and 14 on the console). If a story moment does not seem to progress, player 2 can try dropping out (hold Back) to let the game continue; please report it as an issue. Known limits:
 
 * Level 15 (Yoda as the companion) has no saber throw; his black-button Force power works.
 * On level 12, handing a boss back to the computer in the middle of phase 2 might leave the computer without some Force powers for the rest of that fight (not observed).
