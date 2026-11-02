@@ -2,28 +2,18 @@
 
 **Unofficial two-player couch co-op for the story campaign of *Star Wars: Episode III – Revenge of the Sith* on the original Xbox (NTSC-U).**
 
-**How To Play**
-With player 1 in **port 1**, plug a second controller into **port 2**. In any single-player story mission, after letting the level load for a few seconds, **hold Back on controller 2 for about a second** to join in; hold it again to leave. Player 2 starts every level as the game's normal computer companion, or spawns in a character if necessary and takes over from there. On the boss duels, player 2 takes over the boss.
-
-**Fully Functional Player 2**
-Player 2 is a fully functioning character with matching power set to Player 1 (where applicable, level 15 is a suprise!). Player 2 has his own health, force, and combo meter, and at the end of the level all experience/kills go to Player 1's Single Player save. Player 2 can also interact with consumables, secret objects, buttons, and story objects like doors and panels.
-
-Player 2 is attached to player 1 by a tether and will be teleported back to him if he gets too far. Only player 1 can progress the level.
-
-Player 2 can interact with some "force jump" circles but this can sometimes cause a softlock in the level so while it does work, you should have player 1 use most force jumps. Some levels may require both characters to jump, or just pull along player 2 with the tether.
-
-**Full Drop-In Drop-Out Support**
-On companion levels, drop out returns control of the companion to the level ai and returns their power set to normal.
-On spawn in levels, drop out removes the spawned character from play but health and other values are stored.
-On boss levels, player 2 can drop in and out as all boss characters including both Serra and Cin in Mission 12.
-
-**Co-Op Camera**
-When the second player drops in, the camera pans and pulls back to try to keep both characters in frame. This can sometimes result in the camera being behind level geometry.
-
 This is a binary patch of the game's own executable (`default.xbe`) plus a replacement start-up notice screen. **It contains no game files**: you need your own copy of the game, and the patcher refuses anything but the exact NTSC-U release.
 
 > Unofficial fan project. Not affiliated with, endorsed by, or connected to LucasArts, Lucasfilm Ltd. or Disney. *Star Wars* and *Revenge of the Sith* are trademarks of their owners.
 > It was made with the help of documentation from jedijosh920's [SWROTS-PC](https://github.com/jedijosh920/swrots-pc) port, and with Claude AI.
+
+## Playing
+
+* **Join / leave:** hold **Back** on controller 2 for about 1 second, any time in a story level. Each level starts with the game's own companion, and nothing is remembered after a restart.
+* **Boss levels:** player 2 takes over the boss (levels 4, 9, 10, 12, 16, 17). The boss gets all his powers, and control goes back to the computer when player 2 leaves.
+* **Levels with no companion** (5, 7, 8, 11, 13, 14) get a second character beside player 1.
+* Joining is disabled in cutscenes and in the few scripted sections of gameplay that need one player.
+* Level by level details and status: [source/CHANGES.md](source/CHANGES.md) ("Co-op rule per level").
 
 ## What you need
 
@@ -64,14 +54,6 @@ Expected MD5s: original `6460ef37862de3af364a0563a0a18c4e`, patched `8ef778d8293
 `python couchcoop_patch.py --xbe default.xbe -o patched.xbe` gives the same file without xdelta.
 
 The start-up screen is optional and separate: it only needs a replacement of `movies/Splash_Movies/Legal_XBOX.sfd`, which the patcher builds from your own file's headers. Without it the mod works the same, you just see the original legal screen.
-
-## Playing
-
-* **Join / leave:** hold **Back** on controller 2 for about 1 second, any time in a story level. Each level starts with the game's own companion, and nothing is remembered after a restart.
-* **Boss levels:** player 2 takes over the boss (levels 4, 9, 10, 12, 16, 17). The boss gets all his powers, and control goes back to the computer when player 2 leaves.
-* **Levels with no companion** (5, 7, 8, 11, 13, 14) get a second character beside player 1.
-* Joining is disabled in cutscenes and in the few scripted sections of gameplay that need one player.
-* Level by level details and status: [source/CHANGES.md](source/CHANGES.md) ("Co-op rule per level").
 
 ### Status
 
