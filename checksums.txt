@@ -1,0 +1,5 @@
+default.xbe  original  (NTSC-U)  md5 6460ef37862de3af364a0563a0a18c4e
+default.xbe  patched   v0.36       md5 8ef778d829352457dad05d7abe785fa8
+Legal_XBOX.sfd  original          md5 acfd4ff8cc82ac695961d611b598bac6  (1644544 bytes)
+Legal_XBOX.sfd  patched           md5 08fe86ada567dbcc7983635abb4d52ec  (2662400 bytes)
+fc681f7a3db314ffd803f9f9f5789d046fad843f26b333f8ccc80ac77e5f42ab  xdelta/default.xbe.xdelta

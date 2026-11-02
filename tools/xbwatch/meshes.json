@@ -1,0 +1,704 @@
+{
+ "meshes": [
+  "DarthVader\\darthVader",
+  "Battledroid\\BattleDroid",
+  "Battledroid\\hordeBattleDroid",
+  "airBDroid\\airBDroid",
+  "cloneSky\\cloneSky",
+  "BZD\\BZD",
+  "cloneWalker\\cloneWalker",
+  "SuperBattleDroid\\SuperBattleDroid",
+  "SuperBattleDroid\\hordeSuperBattleDroid",
+  "GrappleDroid\\GrappleDroid",
+  "Anakin\\Anakin",
+  "AnakinDuel\\AnakinDuel",
+  "Anakincloak\\Anakincloak",
+  "AnakinHoodDown\\AnakinHoodDown",
+  "Obi\\Obi",
+  "ObiDuel\\ObiDuel",
+  "ObiCloak\\ObiCloak",
+  "ObiDirty\\ObiDirty",
+  "ObiOld\\ObiOld",
+  "Dooku\\Dooku",
+  "Palpatine_grey\\palpatine_grey",
+  "sidious\\sidious",
+  "emperor\\emperor",
+  "R2D2\\R2D2",
+  "nemgd\\Nemgd",
+  "GrievBGuard\\GrievBGuard",
+  "Grievous\\Grievous",
+  "Grievous_low\\Grievous_shell",
+  "Grievous_Low\\Grievous_Low",
+  "cloneAssassin\\cloneAssassin",
+  "clonetrooper\\cloneTrooper",
+  "clonetrooper\\hordeTrooper",
+  "cloneGunner\\cloneGunner",
+  "clonesniper\\clonesniper",
+  "destroyerDroid\\destroyerDroid",
+  "jdKnight_A\\jdKnight_A",
+  "jdKnight_B\\jdKnight_B",
+  "PadwFem\\PadwFem",
+  "padwmale_a\\padwmale_a",
+  "Mace\\Mace",
+  "JDBrute_b\\JDBrute_b",
+  "nembrut\\nembrut",
+  "nemscout\\nemscout",
+  "crabDroid\\crabDroid",
+  "jdsniper\\jdsniper",
+  "nemaid\\nemaid",
+  "stormtrooper\\stormtrooper",
+  "luke\\luke",
+  "nuteg\\nuteg",
+  "runeh\\runeh",
+  "wat\\wat",
+  "c3po\\c3po",
+  "clonecomm\\clonecomm",
+  "serra\\serra",
+  "cin\\cin",
+  "Poggle\\Poggle",
+  "Yoda\\Yoda",
+  "lsaberanakinduel\\LsaberAnakinduel",
+  "grievousbgstaff\\grievousBGStaff",
+  "nemProd\\nemProd",
+  "nemstaff\\nemstaff",
+  "yodacane\\yodacane",
+  "nemRifle\\nemRifle",
+  "CloneBlaster\\CloneBlaster",
+  "clonecannon\\clonecannon",
+  "cloneSniperRifle\\cloneSniperRifle",
+  "DroidSniperRifle\\DroidSniperRifle",
+  "droidrapidblaster\\droidrapidblaster"
+ ],
+ "classes": [
+  {
+   "header": "Vader",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Vader",
+     "mesh": "DarthVader\\darthVader"
+    }
+   ]
+  },
+  {
+   "header": "BattleDroid",
+   "variants": [
+    {
+     "i": 0,
+     "name": "BattleDroid",
+     "mesh": "Battledroid\\BattleDroid"
+    },
+    {
+     "i": 1,
+     "name": "hordeBattleDroid",
+     "mesh": "Battledroid\\hordeBattleDroid"
+    },
+    {
+     "i": 2,
+     "name": "SniperBattleDroid",
+     "mesh": "Battledroid\\BattleDroid"
+    },
+    {
+     "i": 3,
+     "name": "SniperhordeBattleDroid",
+     "mesh": "Battledroid\\hordeBattleDroid"
+    },
+    {
+     "i": 4,
+     "name": "BattleDroidCaptain",
+     "mesh": "Battledroid\\BattleDroid"
+    },
+    {
+     "i": 5,
+     "name": "hordeBattleDroidCaptain",
+     "mesh": "Battledroid\\hordeBattleDroid"
+    }
+   ]
+  },
+  {
+   "header": "BattleDroidFly",
+   "variants": [
+    {
+     "i": 0,
+     "name": "BattleDroidFly",
+     "mesh": "airBDroid\\airBDroid"
+    }
+   ]
+  },
+  {
+   "header": "BlazeTrooper",
+   "variants": [
+    {
+     "i": 0,
+     "name": "BlazeTrooper",
+     "mesh": "cloneSky\\cloneSky"
+    }
+   ]
+  },
+  {
+   "header": "BuzzDroid",
+   "variants": [
+    {
+     "i": 0,
+     "name": "BuzzDroid",
+     "mesh": "BZD\\BZD"
+    }
+   ]
+  },
+  {
+   "header": "CloneWalker",
+   "variants": [
+    {
+     "i": 0,
+     "name": "cloneWalker",
+     "mesh": "cloneWalker\\cloneWalker"
+    }
+   ]
+  },
+  {
+   "header": "SuperBattleDroid",
+   "variants": [
+    {
+     "i": 0,
+     "name": "SuperBattleDroid",
+     "mesh": "SuperBattleDroid\\SuperBattleDroid"
+    },
+    {
+     "i": 1,
+     "name": "hordeSuperBattleDroid",
+     "mesh": "SuperBattleDroid\\hordeSuperBattleDroid"
+    }
+   ]
+  },
+  {
+   "header": "GrappleDroid",
+   "variants": [
+    {
+     "i": 0,
+     "name": "GrappleDroid",
+     "mesh": "GrappleDroid\\GrappleDroid"
+    },
+    {
+     "i": 1,
+     "name": "GrappleDroidRed",
+     "mesh": "GrappleDroid\\GrappleDroid"
+    }
+   ]
+  },
+  {
+   "header": "Anakin",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Anakin",
+     "mesh": "Anakin\\Anakin"
+    },
+    {
+     "i": 1,
+     "name": "Anakin_Duel",
+     "mesh": "AnakinDuel\\AnakinDuel"
+    },
+    {
+     "i": 2,
+     "name": "Anakin_Cloak",
+     "mesh": "Anakincloak\\Anakincloak"
+    },
+    {
+     "i": 3,
+     "name": "Anakin_Hood_Down",
+     "mesh": "AnakinHoodDown\\AnakinHoodDown"
+    },
+    {
+     "i": 4,
+     "name": "Anakin_NPC",
+     "mesh": "Anakin\\Anakin"
+    },
+    {
+     "i": 5,
+     "name": "Anakin_NPC_Duel",
+     "mesh": "AnakinDuel\\AnakinDuel"
+    },
+    {
+     "i": 6,
+     "name": "Anakin_NPC_Cloak",
+     "mesh": "Anakincloak\\Anakincloak"
+    },
+    {
+     "i": 7,
+     "name": "Anakin_NPC_Hood_Down",
+     "mesh": "AnakinHoodDown\\AnakinHoodDown"
+    },
+    {
+     "i": 8,
+     "name": "Anakin_Cloak_NoAnim",
+     "mesh": "Anakincloak\\Anakincloak"
+    }
+   ]
+  },
+  {
+   "header": "Obiwan",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Obiwan",
+     "mesh": "Obi\\Obi"
+    },
+    {
+     "i": 1,
+     "name": "Obiwan_Duel",
+     "mesh": "ObiDuel\\ObiDuel"
+    },
+    {
+     "i": 2,
+     "name": "Obiwan_Cloak",
+     "mesh": "ObiCloak\\ObiCloak"
+    },
+    {
+     "i": 3,
+     "name": "Obiwan_Dirty",
+     "mesh": "ObiDirty\\ObiDirty"
+    },
+    {
+     "i": 4,
+     "name": "Obiwan_NPC",
+     "mesh": "Obi\\Obi"
+    },
+    {
+     "i": 5,
+     "name": "Obiwan_NPC_Duel",
+     "mesh": "ObiDuel\\ObiDuel"
+    },
+    {
+     "i": 6,
+     "name": "Obiwan_NPC_Cloak",
+     "mesh": "ObiCloak\\ObiCloak"
+    },
+    {
+     "i": 7,
+     "name": "Obiwan_NPC_Dirty",
+     "mesh": "ObiDirty\\ObiDirty"
+    }
+   ]
+  },
+  {
+   "header": "OldObiwan",
+   "variants": [
+    {
+     "i": 0,
+     "name": "OldObiwan",
+     "mesh": "ObiOld\\ObiOld"
+    }
+   ]
+  },
+  {
+   "header": "Dooku",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Dooku",
+     "mesh": "Dooku\\Dooku"
+    }
+   ]
+  },
+  {
+   "header": "Palpatine",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Palpatine",
+     "mesh": "Palpatine_grey\\palpatine_grey"
+    },
+    {
+     "i": 1,
+     "name": "Sidious",
+     "mesh": "sidious\\sidious"
+    },
+    {
+     "i": 2,
+     "name": "Emperor",
+     "mesh": "emperor\\emperor"
+    }
+   ]
+  },
+  {
+   "header": "R2D2",
+   "variants": [
+    {
+     "i": 0,
+     "name": "R2D2",
+     "mesh": "R2D2\\R2D2"
+    }
+   ]
+  },
+  {
+   "header": "NeimoidianG",
+   "variants": [
+    {
+     "i": 0,
+     "name": "NeimoidianG",
+     "mesh": "nemgd\\Nemgd"
+    }
+   ]
+  },
+  {
+   "header": "GrievBGuard",
+   "variants": [
+    {
+     "i": 0,
+     "name": "GrievBGuard",
+     "mesh": "GrievBGuard\\GrievBGuard"
+    }
+   ]
+  },
+  {
+   "header": "Grievous",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Grievous",
+     "mesh": "Grievous\\Grievous"
+    },
+    {
+     "i": 1,
+     "name": "Grievous_shell",
+     "mesh": "Grievous_low\\Grievous_shell"
+    }
+   ]
+  },
+  {
+   "header": "GrievousSimple",
+   "variants": [
+    {
+     "i": 0,
+     "name": "GrievousSimple",
+     "mesh": "Grievous_Low\\Grievous_Low"
+    }
+   ]
+  },
+  {
+   "header": "Assassin",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Assassin",
+     "mesh": "cloneAssassin\\cloneAssassin"
+    }
+   ]
+  },
+  {
+   "header": "CloneTrooper",
+   "variants": [
+    {
+     "i": 0,
+     "name": "cloneTrooper",
+     "mesh": "clonetrooper\\cloneTrooper"
+    },
+    {
+     "i": 1,
+     "name": "hordeTrooper",
+     "mesh": "clonetrooper\\hordeTrooper"
+    },
+    {
+     "i": 2,
+     "name": "cloneGunner",
+     "mesh": "cloneGunner\\cloneGunner"
+    },
+    {
+     "i": 3,
+     "name": "cloneSniper",
+     "mesh": "cloneGunner\\cloneGunner"
+    },
+    {
+     "i": 4,
+     "name": "cloneSniperNewMesh",
+     "mesh": "clonesniper\\clonesniper"
+    }
+   ]
+  },
+  {
+   "header": "Destroyer",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Destroyer",
+     "mesh": "destroyerDroid\\destroyerDroid"
+    }
+   ]
+  },
+  {
+   "header": "JediKnight",
+   "variants": [
+    {
+     "i": 0,
+     "name": "JediKnight1",
+     "mesh": "jdKnight_A\\jdKnight_A"
+    },
+    {
+     "i": 1,
+     "name": "JediKnight2",
+     "mesh": "jdKnight_B\\jdKnight_B"
+    }
+   ]
+  },
+  {
+   "header": "PadwFem",
+   "variants": [
+    {
+     "i": 0,
+     "name": "PadwFem",
+     "mesh": "PadwFem\\PadwFem"
+    },
+    {
+     "i": 1,
+     "name": "PadwMale",
+     "mesh": "padwmale_a\\padwmale_a"
+    }
+   ]
+  },
+  {
+   "header": "Mace",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Mace",
+     "mesh": "Mace\\Mace"
+    }
+   ]
+  },
+  {
+   "header": "JDBrute",
+   "variants": [
+    {
+     "i": 0,
+     "name": "JDBrute",
+     "mesh": "JDBrute_b\\JDBrute_b"
+    }
+   ]
+  },
+  {
+   "header": "nembrute",
+   "variants": [
+    {
+     "i": 0,
+     "name": "nembrute",
+     "mesh": "nembrut\\nembrut"
+    }
+   ]
+  },
+  {
+   "header": "nemscout",
+   "variants": [
+    {
+     "i": 0,
+     "name": "nemscout",
+     "mesh": "nemscout\\nemscout"
+    }
+   ]
+  },
+  {
+   "header": "CrabDroid",
+   "variants": [
+    {
+     "i": 0,
+     "name": "CrabDroid",
+     "mesh": "crabDroid\\crabDroid"
+    }
+   ]
+  },
+  {
+   "header": "jdsniper",
+   "variants": [
+    {
+     "i": 0,
+     "name": "jdsniper",
+     "mesh": "jdsniper\\jdsniper"
+    }
+   ]
+  },
+  {
+   "header": "NemAide",
+   "variants": [
+    {
+     "i": 0,
+     "name": "NemAide",
+     "mesh": "nemaid\\nemaid"
+    }
+   ]
+  },
+  {
+   "header": "Stormtrooper",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Stormtrooper",
+     "mesh": "stormtrooper\\stormtrooper"
+    },
+    {
+     "i": 1,
+     "name": "Luke",
+     "mesh": "luke\\luke"
+    }
+   ]
+  },
+  {
+   "header": "NuteG",
+   "variants": [
+    {
+     "i": 0,
+     "name": "NuteG",
+     "mesh": "nuteg\\nuteg"
+    }
+   ]
+  },
+  {
+   "header": "RuneH",
+   "variants": [
+    {
+     "i": 0,
+     "name": "RuneH",
+     "mesh": "runeh\\runeh"
+    }
+   ]
+  },
+  {
+   "header": "Wat",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Wat",
+     "mesh": "wat\\wat"
+    }
+   ]
+  },
+  {
+   "header": "C3P0",
+   "variants": [
+    {
+     "i": 0,
+     "name": "C3P0",
+     "mesh": "c3po\\c3po"
+    }
+   ]
+  },
+  {
+   "header": "CommanderCody",
+   "variants": [
+    {
+     "i": 0,
+     "name": "CommanderCody",
+     "mesh": "clonecomm\\clonecomm"
+    }
+   ]
+  },
+  {
+   "header": "Serra",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Serra",
+     "mesh": "serra\\serra"
+    }
+   ]
+  },
+  {
+   "header": "CinDrallig",
+   "variants": [
+    {
+     "i": 0,
+     "name": "CinDrallig",
+     "mesh": "cin\\cin"
+    }
+   ]
+  },
+  {
+   "header": "Poggle",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Poggle",
+     "mesh": "Poggle\\Poggle"
+    }
+   ]
+  },
+  {
+   "header": "Yoda",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Yoda",
+     "mesh": "Yoda\\Yoda"
+    },
+    {
+     "i": 1,
+     "name": "YodaWithCane",
+     "mesh": "Yoda\\Yoda"
+    }
+   ]
+  },
+  {
+   "header": null,
+   "variants": [
+    {
+     "i": 0,
+     "name": "Weapons",
+     "mesh": "lsaberanakinduel\\LsaberAnakinduel"
+    },
+    {
+     "i": 1,
+     "name": "Weapons",
+     "mesh": "grievousbgstaff\\grievousBGStaff"
+    },
+    {
+     "i": 2,
+     "name": "Weapons",
+     "mesh": "nemProd\\nemProd"
+    },
+    {
+     "i": 3,
+     "name": "Weapons",
+     "mesh": "nemstaff\\nemstaff"
+    },
+    {
+     "i": 4,
+     "name": "Weapons",
+     "mesh": "yodacane\\yodacane"
+    },
+    {
+     "i": 5,
+     "name": "Weapons",
+     "mesh": "nemRifle\\nemRifle"
+    }
+   ]
+  },
+  {
+   "header": "NemRifle",
+   "variants": [
+    {
+     "i": 0,
+     "name": "Weapons",
+     "mesh": "CloneBlaster\\CloneBlaster"
+    },
+    {
+     "i": 1,
+     "name": "Weapons",
+     "mesh": "clonecannon\\clonecannon"
+    },
+    {
+     "i": 2,
+     "name": "Weapons",
+     "mesh": "cloneSniperRifle\\cloneSniperRifle"
+    },
+    {
+     "i": 3,
+     "name": "Weapons",
+     "mesh": "DroidSniperRifle\\DroidSniperRifle"
+    },
+    {
+     "i": 4,
+     "name": "Weapons",
+     "mesh": "droidrapidblaster\\droidrapidblaster"
+    }
+   ]
+  }
+ ]
+}

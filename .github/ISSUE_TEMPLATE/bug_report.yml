@@ -1,0 +1,61 @@
+name: Bug report
+description: Something went wrong in co-op (crash, soft lock, a scripted moment that does not work, a missing power)
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing! Please do **not** attach game files, ISOs or a patched `default.xbe`.
+  - type: input
+    id: version
+    attributes:
+      label: Mod version
+      description: Shown by the patcher when it runs, and in the release name (for example v0.36)
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did you play?
+      options:
+        - xemu
+        - Softmodded original Xbox
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: xemu
+    attributes:
+      label: xemu version (if xemu)
+      description: For example 0.8.139 on Windows x86_64, or a CI build of a pull request
+  - type: input
+    id: level
+    attributes:
+      label: Level
+      description: Level number or name, and the part of the level (room, boss phase, cutscene)
+    validations:
+      required: true
+  - type: dropdown
+    id: role
+    attributes:
+      label: What was player 2 doing?
+      options:
+        - Taken over the companion
+        - Taken over the boss
+        - Spawned second character
+        - Computer companion (not joined)
+        - Joining or leaving
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: Steps to repeat it if you know them. A short video helps a lot.
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Did it happen every time? Did it happen after dying or restarting? Did you join or leave right before?

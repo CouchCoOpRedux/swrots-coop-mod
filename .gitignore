@@ -1,0 +1,9 @@
+# never commit game files or patched game files
+*.iso
+*.xiso
+*.xbe
+*.sfd
+*.orig
+*_original_files/
+__pycache__/
+*.pyc
