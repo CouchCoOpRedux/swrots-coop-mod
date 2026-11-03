@@ -25,6 +25,7 @@ import argparse
 import collections
 import json
 import os
+import re
 import select
 import socket
 import struct
@@ -953,6 +954,34 @@ def cmd_headroom(a):
         r.close()
 
 
+def cmd_ramdump(a):
+    """Saves all of the guest's RAM (64 MB) to logs\\ram_<note>.bin.gz so it can be studied offline. Read only; the game is stopped for the
+    few seconds it takes and runs on afterwards. Unreadable pages are stored as zeros."""
+    import gzip
+    top = num(a.top)
+    here = os.path.dirname(os.path.abspath(__file__))
+    os.makedirs(os.path.join(here, "logs"), exist_ok=True)
+    name = "ram_%s_%s.bin.gz" % (re.sub(r"[^A-Za-z0-9]+", "_", a.note or "dump").strip("_"), time.strftime("%Y%m%d_%H%M%S"))
+    path = os.path.join(here, "logs", name)
+    r = Rsp(a.host, a.port)
+    try:
+        r.connect_handshake()
+        say("saving %d MB of RAM to %s ..." % (top >> 20, path))
+        t0, bad, cur = time.time(), 0, 0
+        with gzip.open(path, "wb", compresslevel=3) as f:
+            while cur < top:
+                n = min(0x800, top - cur)
+                d = r._m(cur, n)
+                if d is None or len(d) != n:
+                    d = b"\0" * n
+                    bad += 1
+                f.write(d)
+                cur += n
+        say("done in %.1f s (%d unreadable chunks): %s  (%.1f MB)" % (time.time() - t0, bad, path, os.path.getsize(path) / 1048576.0))
+    finally:
+        r.close()
+
+
 def cmd_scriptid(a):
     """Reads the script recorder of mod version 34+ (what asked for player two's buttons, and the script instance bytes) and appends it to logs\\scripts.txt."""
     base = num(a.base)
@@ -1059,6 +1088,11 @@ def main():
     p.add_argument("--base", default="0x976D80")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=1234)
+    p = sub.add_parser("ramdump", help="save all of RAM (read only) to logs/ram_<note>_<time>.bin.gz")
+    p.add_argument("note", nargs="?", default="", help="what is going on, e.g. 'level7_p2_in'")
+    p.add_argument("--top", default="0x4000000")
+    p.add_argument("--host", default="127.0.0.1")
+    p.add_argument("--port", type=int, default=1234)
     p = sub.add_parser("resume", help="let a game that was left stopped run again")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=1234)
@@ -1073,6 +1107,11 @@ def main():
     if a.cmd == "levelid":
         try:
             return cmd_levelid(a)
+        except GdbError as e:
+            raise SystemExit(str(e))
+    if a.cmd == "ramdump":
+        try:
+            return cmd_ramdump(a)
         except GdbError as e:
             raise SystemExit(str(e))
     if a.cmd == "headroom":
