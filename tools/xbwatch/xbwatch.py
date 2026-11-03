@@ -959,19 +959,20 @@ def cmd_ramdump(a):
     few seconds it takes and runs on afterwards. Unreadable pages are stored as zeros."""
     import gzip
     top = num(a.top)
+    start = num(a.start)
     here = os.path.dirname(os.path.abspath(__file__))
     os.makedirs(os.path.join(here, "logs"), exist_ok=True)
-    name = "ram_%s_%s.bin.gz" % (re.sub(r"[^A-Za-z0-9]+", "_", a.note or "dump").strip("_"), time.strftime("%Y%m%d_%H%M%S"))
+    name = "ram_%s_%s%s.bin.gz" % (re.sub(r"[^A-Za-z0-9]+", "_", a.note or "dump").strip("_"), time.strftime("%Y%m%d_%H%M%S"), ("_from%X" % start) if start else "")
     path = os.path.join(here, "logs", name)
     r = Rsp(a.host, a.port)
     try:
         r.connect_handshake()
-        say("saving %d MB of RAM to %s ..." % (top >> 20, path))
+        say("saving %d MB of memory from %#x to %s ..." % (top >> 20, start, path))
         t0, bad, cur = time.time(), 0, 0
         with gzip.open(path, "wb", compresslevel=3) as f:
             while cur < top:
                 n = min(0x800, top - cur)
-                d = r._m(cur, n)
+                d = r._m(start + cur, n)
                 if d is None or len(d) != n:
                     d = b"\0" * n
                     bad += 1
@@ -1090,7 +1091,8 @@ def main():
     p.add_argument("--port", type=int, default=1234)
     p = sub.add_parser("ramdump", help="save all of RAM (read only) to logs/ram_<note>_<time>.bin.gz")
     p.add_argument("note", nargs="?", default="", help="what is going on, e.g. 'level7_p2_in'")
-    p.add_argument("--top", default="0x4000000")
+    p.add_argument("--top", default="0x4000000", help="how many bytes to save (default 64 MB)")
+    p.add_argument("--start", default="0", help="first address; 0x80000000 reads the whole of physical RAM through the kernel's mapping")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=1234)
     p = sub.add_parser("resume", help="let a game that was left stopped run again")
