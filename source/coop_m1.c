@@ -1423,6 +1423,38 @@ static void win_watch(u8* p1, u32 now)
     g_dbg.spare = (u32)s_wState | ((u32)s_wLock << 4) | ((u32)s_wResume << 5);
 }
 
+/* ---- P42 player two's light-saber colour
+ * Where:  the spawned character's light saber: the character holds it at +0x1080 (the cinematic events' "saber of character n" is [character + (0x84 + n) * 32]), the
+ *         saber (class ILightSaber, vtable 0x5B1FF0 and the Anakin / Obi-Wan / Dooku classes after it) keeps its colour as three floats at +0x814 (red, green, blue; blue
+ *         is 0 0 1, Dooku's red 1 0 0), and virtual slot 0x604 (0x286180) stores a new colour there and tells the blade renderer (+0x868). It is what the game's own
+ *         cinematic event "Set saber color" (CinEvent_SaberColor, 0x24A680) calls. No game code is patched.
+ * Was:    every saber was blue, so on the spawn levels both players had the same blade.
+ * Now:    on the levels of k_saber[] the spawned character's saber gets the row's colour (green for Obi-Wan on 7, 8 and 13, red for Anakin on 11 and 14) as soon as it
+ *         exists, and again if the game puts another colour back.
+ * Source: this project (the cinematic event's code; a RAM dump of two IObiwan characters, both with a saber at +0x1080 and colour 0 0 1). */
+#define C_SABER         0x1080u
+#define SABER_COLOR_OFF 0x814u
+#define SABER_RENDER    0x868u
+#define SABER_VSLOT     0x604u
+typedef void (FASTCALL *SaberColorFn)(void* saber, void* edx, const float* rgb);
+static const float k_sabCol[3][3] = { { 0, 0, 0 }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } };   /* none, green, red */
+static const u8 k_saber[KEYS] = { [7] = 1, [8] = 1, [13] = 1, [11] = 2, [14] = 2 };
+static void saber_watch(void)
+{
+    if (s_key >= KEYS || !k_saber[s_key] || !s_sub || !still_char(s_sub, s_subId)) return;
+    u8* sb = *(u8**)(s_sub + C_SABER);
+    if (!sb || !page_ok((u32)sb) || !page_ok((u32)sb + SABER_RENDER + 3)) return;
+    u32 vt = *(u32*)sb;
+    if (vt < 0x5B1FF0u || vt >= 0x5B3400u) return;                    /* one of the ILightSaber classes */
+    u32 rend = *(u32*)(sb + SABER_RENDER);
+    if (!rend || !page_ok(rend)) return;                              /* the blade is not built yet */
+    const float* want = k_sabCol[k_saber[s_key]];
+    const u32* have = (const u32*)(sb + SABER_COLOR_OFF);
+    const u32* w = (const u32*)want;
+    if (have[0] == w[0] && have[1] == w[1] && have[2] == w[2]) return;
+    ((SaberColorFn)*(u32*)(vt + SABER_VSLOT))(sb, 0, want);
+}
+
 void coop_tick(void)
 {
     g_dbg.frames++;
@@ -1450,6 +1482,7 @@ void coop_tick(void)
 #endif
     follow_p1(p1);
     event_watch(p1);
+    saber_watch();
     scan_watch(now);
     win_watch(p1, now);
 #if COOP_DIAG
