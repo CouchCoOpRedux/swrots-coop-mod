@@ -13,6 +13,7 @@ SECTIONS {
     . = ALIGN(16);
   }
   .coopdbg 0x976000 : { *(.coopdbg) *(.coopdbg2) . = ALIGN(16); }
+  .coopcfg 0x977800 : { *(.coopcfg) . = ALIGN(16); }
   ASSERT(ADDR(.coop) + SIZEOF(.coop) <= 0x976000, "code outgrew its 32 KB slot")
   /DISCARD/ : { *(.comment) *(.note*) *(.eh_frame*) *(.got*) *(.plt*) }
 }

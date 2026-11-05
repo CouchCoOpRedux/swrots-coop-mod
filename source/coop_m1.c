@@ -654,11 +654,11 @@ enum { BODY_OPPOSITE = 0, BODY_COPY = 1, BODY_CLASS = 2 };
 struct Body { u8 mode; signed char costume; signed char texset; const char* cls; };
 static const struct Body k_body[KEYS] = {
     [5]  = { BODY_OPPOSITE, 0, 0, 0 },     /* P1 Anakin: P2 Obi-Wan */
-    [7]  = { BODY_COPY, -1, -1, 0 },       /* a copy of P1 in P1's own costume; the other costumes (plain / cloak / hood down) did not load (v27 tests) */
-    [8]  = { BODY_COPY, -1, -1, 0 },
-    [11] = { BODY_COPY, -1, -1, 0 },
-    [13] = { BODY_COPY, -1, -1, 0 },
-    [14] = { BODY_COPY, -1, -1, 0 },
+    [7]  = { BODY_COPY, -1, 1, 0 },       /* a copy of P1's class; texture set 1 = the recoloured skin (P39 to P41); the other costumes did not load (v27 tests) */
+    [8]  = { BODY_COPY, -1, 1, 0 },
+    [11] = { BODY_COPY, -1, 1, 0 },
+    [13] = { BODY_COPY, -1, 1, 0 },
+    [14] = { BODY_COPY, -1, 1, 0 },
 };
 static void apply_level(u32 key)
 {
@@ -2300,5 +2300,320 @@ __asm__(
     "    pushl %esi\n"
     "    movl 0x50fe68, %esi\n"
     "    pushl $0x504817\n"
+    "    ret\n"
+    ".text\n");
+
+
+static int cb_ptr(u32 p) { return p >= 0x10000u && page_ok(p) && page_ok(p + 3); }   /* stacks live outside vptr()'s ranges */
+
+
+/* PLAYER TWO'S SKIN. The game's texture-name callback (0x14F7E0) answers "yes" to <name><suffix> only when the level declares that texture (kSceneIsDeclared 0x4BDA0).
+ * Texture set 1 of Obi-Wan's and Anakin's costume lists has the suffix "_var01" (data words patched by patch_xbe.py); no level declares such a file, so at 0x14F8A2
+ * (just after that check) we declare "<folder>\\<name>_var01.stx" ourselves, the way the unofficial PC port does (resources.cpp Declare): a node named after the path in
+ * the scene's texture table. The scene then asks the packer to read it (kSceneResRead 0x527F0), which no PAK has: our hook there hands the engine's own texture decoder
+ * a recoloured copy from memory (the engine's memory file). The result is an ordinary, refcounted texture. The mod contains no game pixels (see below). */
+typedef void* (*AllocFn)(u32);
+typedef void  (FASTCALL *NodeSetPathFn)(u8* node, void* edx, const void* path, u8* scene);
+typedef i32   (FASTCALL *MapFindFn)(u8* map, void* edx, const char* key);
+typedef void  (FASTCALL *MapInsertFn)(u8* map, void* edx, u32 key, u8* group);
+typedef const char* (FASTCALL *PathKeyFn)(const void* path, void* edx, i32 woext);
+typedef void* (FASTCALL *PathFromTextFn)(void* path, void* edx, const char* text, i32 kind);
+typedef u16   (FASTCALL *AddStringFn)(u8* scene, void* edx, const char* text);
+typedef void  (FASTCALL *BuildPathFn)(const void* path, void* edx, char* out, i32 dirOnly);
+typedef void* (FASTCALL *MemCtorFn)(void* mem, void* edx);
+typedef void* (FASTCALL *PackReaderCtorFn)(void* mem, void* edx, void* file, i32 arg);
+typedef i32   (*DecodeFn)(i32 scene, void* source, i32 typeId, i32 extra);
+typedef void  (FASTCALL *VCall0)(void* o, void* edx);
+typedef void  (FASTCALL *VCall1)(void* o, void* edx, i32 a);
+typedef i32   (FASTCALL *VOpen)(void* o, void* edx, const void* data, u32 size);
+struct ReadSource { void* reader; void* path; u8 fromPak; u8 pad[3]; void* record; };
+
+static u8* eng_scene(void)
+{
+    u32 g = 0x645F7C;
+    if (!page_ok(g)) return 0;
+    u32 a = *(const u32*)g;                        if (a < 0x10000u || !page_ok(a + 0x3B)) return 0;
+    u32 b = *(const u32*)(a + 0x38);               if (b < 0x10000u || !page_ok(b + 0x13)) return 0;
+    u32 s = *(const u32*)(b + 0x10);               if (s < 0x10000u || !page_ok(s) || !page_ok(s + 0x15C8)) return 0;
+    return (u8*)s;
+}
+
+static u8* g_dfolders; static u32 g_dcap;
+
+static int decl_texture(const char* text, u32 stxsize)
+{
+    u8* scene = eng_scene(); if (!scene) return 0;
+    AllocFn alloc = *(AllocFn*)(*(u32*)0x645F7C + 0x50);
+    u8* table = *(u8**)(scene + 0x14F8 + 0 * 4);   /* type 0: textures */
+    if (!table) return 0;
+    u8* map = table + 0x10;
+    i32 count = *(i32*)(scene + 0x15C4);
+    if (*(u8**)(scene + 0x15C0) != g_dfolders || (u32)(count + 16) > g_dcap) {   /* room for the folders NodeSetPath may add (the engine appends without checking) */
+        u32 grown = (u32)count + 16u + 256u;
+        u8* f = (u8*)alloc(grown * 0x26u);
+        if (!f) return 0;
+        u8* old = *(u8**)(scene + 0x15C0);
+        for (u32 i = 0; i < (u32)count * 0x26u; ++i) f[i] = old[i];
+        for (u32 i = (u32)count; i < grown; ++i) {
+            u8* x = f + i * 0x26u;
+            for (u32 k = 0; k < 0x26u; ++k) x[k] = 0;
+            *(u16*)(x + 0x22) = 0xFFFF; *(u16*)(x + 0x24) = 0xFFFF;
+        }
+        *(u8**)(scene + 0x15C0) = f; g_dfolders = f; g_dcap = grown;
+    }
+    u32 path[0x40]; for (u32 i = 0; i < 0x40; ++i) path[i] = 0;
+    ((PathFromTextFn)0x00233B70)(path, 0, text, 1);
+    u8* node = (u8*)alloc(20); if (!node) return 0;
+    for (u32 i = 0; i < 20; ++i) node[i] = 0;
+    ((NodeSetPathFn)0x00055250)(node, 0, path, scene);
+    *(u32*)(node + 0x10) = stxsize;
+    char key[256]; const char* k = ((PathKeyFn)0x00233200)(path, 0, 1);
+    u32 n = 0; for (; k && n < 255 && k[n]; ++n) key[n] = k[n]; key[n] = 0;
+    i32 idx = ((MapFindFn)0x00055CC0)(map, 0, key);
+    if (idx >= 0) {
+        u8* group = *(u8**)(*(u8**)(map + 8) + idx * 8 + 4);
+        *(u8**)node = group; *(u8**)(node + 4) = *(u8**)(group + 4); *(u8**)(group + 4) = node;
+        return 1;
+    }
+    u8* group = (u8*)alloc(8); if (!group) return 0;
+    u8* items = *(u8**)(map + 8);
+    *(u16*)group = *(i32*)(map + 4) > 0 ? *(u16*)(*(u8**)(items + 4)) : 0;
+    *(u16*)(group + 2) = ((AddStringFn)0x0004F160)(scene, 0, key);
+    *(u8**)(group + 4) = node; *(u8**)node = group;
+    ((MapInsertFn)0x00056610)(map, 0, *(u16*)(group + 2), group);
+    return 1;
+}
+
+
+/* ---- Recolouring: the textures are NOT part of this mod. At the first request the original is read from the player's own level PAK on the disc, the colours of its
+ * DXT blocks are shifted (hue / saturation / value, optionally only inside a rectangle) and the result is what the engine decodes. The numbers are in g_skincfg (0x977800),
+ * a plain table of 32-bit words (they can be changed with a debugger while the game runs; they are read when a level asks for the texture). */
+struct SkinTex { u32 enable; i32 hue; u32 sat, val, x0, y0, x1, y1, prepared, served; };   /* hue: degrees (-180..180); sat, val: percent (100 = unchanged); the rectangle in pixels */
+struct SkinCfg { u32 magic, version, flags, ntstatus; struct SkinTex t[5]; };   /* flags: bits 0-4 a part could not be read from the disc, bits 8-12 it was not the expected texture; t[0] = Obi-Wan tunic (obi_02), t[1] = Obi-Wan cloak (obiCloak), t[2] = Anakin tunic (anakin_01), t[3] = Anakin cloak (anakinCloak), t[4] = Anakin trousers (anakin_cloth) */
+__attribute__((section(".coopcfg"))) struct SkinCfg g_skincfg = { 0x46434B53u, 1, 0, 0, { { 1, 0, 330, 58, 0, 0, 256, 256, 0, 0 }, { 1, 15, 28, 200, 0, 0, 256, 256, 0, 0 }, { 1, 0, 25, 100, 0, 0, 256, 256, 0, 0 }, { 1, 0, 15, 120, 0, 0, 256, 256, 0, 0 }, { 1, 0, 12, 90, 0, 0, 256, 256, 0, 0 } } };
+
+/* Kernel calls, through the game's own import table (the loader fills it with the kernel's addresses). */
+#define K_NtClose      0x0055F6C0u
+#define K_NtReadFile   0x0055F6E4u
+#define K_NtCreateFile 0x0055F700u
+typedef i32 (__attribute__((stdcall)) *fnCreate)(void**, u32, void*, void*, void*, u32, u32, u32, u32);
+typedef i32 (__attribute__((stdcall)) *fnClose)(void*);
+typedef i32 (__attribute__((stdcall)) *fnReadFile)(void*, void*, void*, void*, void*, void*, u32, void*);
+static u8* g_skinbuf[5];
+struct SkinPart { const char* base; const char* var; u32 size; u8 fmt; u32 w, h; };   /* base: lowercase texture name; var: the declared file name; size: bytes of the .stx; fmt: 0x40 DXT1, 0x52 DXT5 */
+static const struct SkinPart k_part[5] = {
+    { "obi_02",      "\\obi_02_var01.stx",      33156u, 0x40, 256, 256 },
+    { "obicloak",    "\\obicloak_var01.stx",    33156u, 0x40, 256, 256 },
+    { "anakin_01",   "\\anakin_01_var01.stx",   65924u, 0x52, 256, 256 },
+    { "anakincloak", "\\anakincloak_var01.stx", 33156u, 0x40, 256, 256 },
+    { "anakin_cloth", "\\anakin_cloth_var01.stx", 16772u, 0x40, 256, 128 },
+};
+
+static int disc_read(const char* path, u32 off, u8* dst, u32 len, u8* scratch)
+{
+    u16 n = 0; while (path[n]) ++n;
+    struct { u16 len, max; const char* buf; } name = { n, (u16)(n + 1), path };
+    struct { void* root; void* name; u32 attr; } oa = { 0, &name, 0x40 };
+    u32 iosb[2] = { 0, 0 }; void* h = 0;
+    i32 st = ((fnCreate)*(u32*)K_NtCreateFile)(&h, 0x80100000u /* GENERIC_READ | SYNCHRONIZE */, &oa, iosb, 0, 0, 1 /* share read */, 1 /* OPEN */, 0x60);
+    g_skincfg.ntstatus = (u32)st;
+    if (st < 0 || !h) return 0;
+    u32 a0 = off & ~2047u, lead = off - a0, total = (lead + len + 2047u) & ~2047u;
+    u32 bo[2] = { a0, 0 }, io2[2] = { 0, 0 };
+    st = ((fnReadFile)*(u32*)K_NtReadFile)(h, 0, 0, 0, io2, scratch, total, bo);
+    ((fnClose)*(u32*)K_NtClose)(h);
+    g_skincfg.ntstatus = (u32)st;
+    if (st < 0) return 0;
+    for (u32 i = 0; i < len; ++i) dst[i] = scratch[lead + i];
+    return 1;
+}
+
+static u16 recol(u16 c, const struct SkinTex* t)
+{
+    int r = (c >> 11) & 31, g = (c >> 5) & 63, b = c & 31;
+    r = (r << 3) | (r >> 2); g = (g << 2) | (g >> 4); b = (b << 3) | (b >> 2);
+    int mx = r > g ? (r > b ? r : b) : (g > b ? g : b), mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+    int d = mx - mn, v = mx, sat = mx ? d * 255 / mx : 0, h = 0;
+    if (d) {
+        if (mx == r) h = (g - b) * 256 / d; else if (mx == g) h = 512 + (b - r) * 256 / d; else h = 1024 + (r - g) * 256 / d;
+        if (h < 0) h += 1536;
+    }
+    h += t->hue * 1536 / 360; h %= 1536; if (h < 0) h += 1536;
+    sat = sat * (int)t->sat / 100; if (sat > 255) sat = 255;
+    v = v * (int)t->val / 100; if (v > 255) v = 255;
+    int sec = h / 256, f = h % 256;
+    int p = v * (255 - sat) / 255, q = v * (255 - sat * f / 255) / 255, tt = v * (255 - sat * (255 - f) / 255) / 255;
+    switch (sec) { case 0: r = v; g = tt; b = p; break; case 1: r = q; g = v; b = p; break; case 2: r = p; g = v; b = tt; break;
+                   case 3: r = p; g = q; b = v; break; case 4: r = tt; g = p; b = v; break; default: r = v; g = p; b = q; break; }
+    return (u16)(((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3));
+}
+
+static void skin_transform(u8* stx, const struct SkinTex* t)
+{
+    u8 fmt = stx[0x3C]; u32 w = *(u32*)(stx + 0x0C), hh = *(u32*)(stx + 0x10);
+    u32 stride = fmt == 0x52 ? 16 : 8, coff = fmt == 0x52 ? 8 : 0, bw = w / 4, bh = hh / 4;
+    u8* px = stx + 388;
+    for (u32 by = 0; by < bh; ++by) for (u32 bx = 0; bx < bw; ++bx) {
+        u32 x = bx * 4, y = by * 4;
+        if (x < t->x0 || x >= t->x1 || y < t->y0 || y >= t->y1) continue;
+        u8* b = px + (by * bw + bx) * stride + coff;
+        u16 c0 = (u16)(b[0] | (b[1] << 8)), c1 = (u16)(b[2] | (b[3] << 8));
+        u32 idx = b[4] | (b[5] << 8) | (b[6] << 16) | ((u32)b[7] << 24);
+        u16 n0 = recol(c0, t), n1 = recol(c1, t);
+        if (fmt != 0x52) {                                  /* DXT1: c0 > c1 means four colours, otherwise three and a transparent index */
+            if (c0 > c1) {
+                if (n0 == n1) { if (n0 < 0xFFFF) ++n0; else --n1; }
+                if (n0 < n1) { u16 z = n0; n0 = n1; n1 = z; idx ^= 0x55555555u; }
+            } else if (n0 > n1) { u16 z = n0; n0 = n1; n1 = z; idx ^= (~(idx >> 1)) & 0x55555555u; }
+        }
+        b[0] = (u8)n0; b[1] = (u8)(n0 >> 8); b[2] = (u8)n1; b[3] = (u8)(n1 >> 8);
+        b[4] = (u8)idx; b[5] = (u8)(idx >> 8); b[6] = (u8)(idx >> 16); b[7] = (u8)(idx >> 24);
+    }
+}
+
+struct SkinSrc { u8 key; const char* pak; u32 off[5]; };   /* where the original textures lie in the level's PAK (offsets of their .stx data) */
+static const struct SkinSrc k_skinsrc[] = {
+    { 7,  "pak\\res_m06a_uta_separatisthq.pak", { 8811990u, 8845228u, 0u, 0u, 0u } },
+    { 8,  "pak\\res_m06b_uta_controlroom.pak", { 8407534u, 0u, 0u, 0u, 0u } },          /* plain Obi-Wan */
+    { 13, "pak\\res_m11a_uta_order66.pak",     { 8561555u, 0u, 0u, 0u, 0u } },          /* plain Obi-Wan: a tunic only, no cloak */
+    { 11, "pak\\res_m09a_cor_temple.pak",      { 0u, 0u, 9025048u, 9093577u, 9008190u } },   /* Anakin, cloak costume */
+    { 14, "pak\\res_m12b_mus_assassin.pak",    { 0u, 0u, 8032660u, 8101189u, 8015802u } },
+};
+
+static int skin_prepare(int which)
+{
+    struct SkinTex* c = &g_skincfg.t[which];
+    if (!c->enable) return 0;
+    const struct SkinSrc* src = 0;
+    for (u32 i = 0; i < sizeof k_skinsrc / sizeof k_skinsrc[0]; ++i) if (k_skinsrc[i].key == s_key) src = &k_skinsrc[i];
+    if (!src || !src->off[which]) return 0;
+    u32 sv = *(u32*)0x645F7C; if (!sv) return 0;
+    AllocFn alloc = *(AllocFn*)(sv + 0x50); void (*freef)(void*) = *(void (**)(void*))(sv + 0x54);
+    if (!g_skinbuf[which]) g_skinbuf[which] = (u8*)alloc(k_part[which].size);
+    u8* scratch = (u8*)alloc(k_part[which].size + 8192);
+    if (!g_skinbuf[which] || !scratch) { if (scratch) freef(scratch); return 0; }
+    char path[96]; static const char* const roots[2] = { "\\??\\D:\\", "\\Device\\CdRom0\\" };
+    int ok = 0;
+    for (int r = 0; r < 2 && !ok; ++r) {
+        u32 n = 0; for (const char* q = roots[r]; *q; ++q) path[n++] = *q; for (const char* q = src->pak; *q; ++q) path[n++] = *q; path[n] = 0;
+        ok = disc_read(path, src->off[which], g_skinbuf[which], k_part[which].size, scratch);
+    }
+    freef(scratch);
+    if (!ok) { g_skincfg.flags |= 1u << which; return 0; }               /* bit 0/1: tunic/cloak could not be read */
+    u8* b = g_skinbuf[which];
+    const char* base = k_part[which].base;
+    u32 k = 0; while (base[k] && (b[0x40 + k] >= 'A' && b[0x40 + k] <= 'Z' ? b[0x40 + k] + 32 : b[0x40 + k]) == (u8)base[k]) ++k;       /* name check ignores case (the file says obiCloak, anakinCloak) */
+    if (base[k] || b[0x40 + k] || b[0x3C] != k_part[which].fmt || *(u32*)(b + 0x0C) != k_part[which].w || *(u32*)(b + 0x10) != k_part[which].h) { g_skincfg.flags |= 0x100u << which; return 0; }   /* bit 2/3: not the expected texture */
+    skin_transform(b, c);
+    { static const char suf[] = "_var01"; u32 e = k; for (u32 i = 0; i < 7; ++i) b[0x40 + e + i] = (u8)suf[i]; for (u32 i = e + 7; i < 32; ++i) b[0x40 + i] = 0; }   /* name + "_var01" */
+    c->prepared++;
+    return 1;
+}
+
+static int nm_eq(const char* t, const char* a) { u32 j = 0; while (a[j] && t[j] == a[j]) ++j; return !a[j] && !t[j]; }
+
+u32 cb_force_c(const char* n, const char* folder)
+{
+    if (!cb_ptr((u32)n)) return 0;
+    char t[16]; u32 i = 0;
+    for (; i < 15; ++i) { if (!page_ok((u32)n + i)) return 0; char c = n[i]; if (c >= 'A' && c <= 'Z') c = (char)(c + 32); t[i] = c; if (!c) break; }
+    t[15] = 0;
+    int which = -1;
+    for (int p = 0; p < 5; ++p) if (nm_eq(t, k_part[p].base)) which = p;
+    if (which < 0 || !skin_prepare(which)) return 0;
+    /* declare "<folder>\\<name>_var01.stx" in the same folder the game's callback is asking about (robed Obi-Wan: obicloak, plain Obi-Wan: obi) */
+    char full[160]; u32 m = 0;
+    if (!cb_ptr((u32)folder)) return 0;
+    for (u32 i = 0; i < 100 && page_ok((u32)folder + i) && folder[i]; ++i) full[m++] = folder[i];
+    while (m && full[m - 1] == '\\') --m;
+    full[m++] = '\\';
+    for (const char* q = k_part[which].var + 1; *q; ++q) full[m++] = *q;   /* the tail without its leading backslash (added above) */
+    full[m] = 0;
+    int ok = decl_texture(full, k_part[which].size);
+    return (u32)ok;
+}
+
+/* The packer's read (0x527F0): serves our two textures from memory, anything else runs the game's code. Called with the 7 stack arguments + ecx (packer). */
+u32 coop_read_c(u32 packer, u32 decode, u32 path, u32 typeId, u32 record, u32 extra, u32 context, u32* res)
+{
+    if (typeId != 0 || !path || !page_ok(path)) return 0;
+    char full[512]; for (u32 i = 0; i < 8; ++i) full[i] = 0;
+    ((BuildPathFn)0x00233420)((const void*)path, 0, full, 0);
+    u32 L = 0; while (L < 510 && full[L]) { if (full[L] >= 'A' && full[L] <= 'Z') full[L] = (char)(full[L] + 32); ++L; }
+    const u8* data = 0;
+    int w = -1;
+    for (int p = 0; p < 5; ++p) { u32 lp = 0; while (k_part[p].var[lp]) ++lp; if (L >= lp && nm_eq(full + L - lp, k_part[p].var)) w = p; }
+    if (w >= 0) { data = g_skinbuf[w]; if (data) g_skincfg.t[w].served++; }
+    if (!data) return 0;
+    AllocFn alloc = *(AllocFn*)(*(u32*)0x645F7C + 0x50);
+    void** file = (void**)((MemCtorFn)0x002326D0)(alloc(0x6C), 0);
+    ((VOpen)(*(void***)file)[0x40 / 4])(file, 0, data, k_part[w].size);
+    void** reader = (void**)((PackReaderCtorFn)0x00232D20)(alloc(0x24), 0, file, 0);
+    if (record) *(u32*)(record + 0x10) = k_part[w].size;
+    struct ReadSource src = { reader, (void*)path, 0, {0, 0, 0}, (void*)record };
+    i32 r = ((DecodeFn)decode)((i32)context, &src, (i32)typeId, (i32)extra);
+    ((VCall0)(*(void***)file)[0x10 / 4])(file, 0);
+    ((VCall1)(*(void***)file)[0])(file, 0, 1);
+    ((VCall1)(*(void***)reader)[0])(reader, 0, 1);
+    *(u8*)(packer + 0x89) = 0;
+    *res = (u32)r;
+    return 1;
+}
+
+__asm__(
+    ".text\n"
+    ".globl coop_read_hook\n"
+    "coop_read_hook:\n"
+    "    pushl %ebp\n"
+    "    movl %esp, %ebp\n"
+    "    pushl %ecx\n"
+    "    pushl %edx\n"
+    "    subl $4, %esp\n"
+    "    leal -12(%ebp), %eax\n"
+    "    pushl %eax\n"
+    "    pushl 32(%ebp)\n" "    pushl 28(%ebp)\n" "    pushl 20(%ebp)\n" "    pushl 16(%ebp)\n" "    pushl 12(%ebp)\n" "    pushl 8(%ebp)\n"
+    "    pushl -4(%ebp)\n"
+    "    call coop_read_c\n"
+    "    addl $32, %esp\n"
+    "    testl %eax, %eax\n"
+    "    jz 1f\n"
+    "    movl -12(%ebp), %eax\n"
+    "    movl %ebp, %esp\n"
+    "    popl %ebp\n"
+    "    ret $0x1C\n"
+    "1:\n"
+    "    movl -4(%ebp), %ecx\n"
+    "    movl -8(%ebp), %edx\n"
+    "    movl %ebp, %esp\n"
+    "    popl %ebp\n"
+    "    subl $0x90, %esp\n"        /* the displaced instruction */
+    "    pushl $0x527F6\n"
+    "    ret\n"
+    ".text\n");
+
+__asm__(
+    ".text\n"
+    ".globl coop_cb_force\n"
+    "coop_cb_force:\n"
+    "    testb %bl, %bl\n"
+    "    jne 1f\n"
+    "    movl $0x14F8B2, %eax\n"   /* already declared: carry on as the game does */
+    "    pushl %eax\n"
+    "    ret\n"
+    "1:\n"
+    "    pushl %eax\n" "    pushl %ecx\n" "    pushl %edx\n"
+    "    movl (%esi), %eax\n"       /* esi = pointer to the name pointer */
+    "    pushl %edi\n"                /* edi = the folder the game's callback is working in */
+    "    pushl %eax\n"
+    "    call cb_force_c\n"
+    "    addl $8, %esp\n"
+    "    testl %eax, %eax\n"
+    "    popl %edx\n" "    popl %ecx\n" "    popl %eax\n"
+    "    jne 2f\n"
+    "    popl %edi\n"                /* the displaced pop, then the game's 'not declared' exit */
+    "    pushl $0x14F8A7\n"
+    "    ret\n"
+    "2:\n"
+    "    pushl $0x14F8B2\n"          /* forced: treat as declared */
     "    ret\n"
     ".text\n");

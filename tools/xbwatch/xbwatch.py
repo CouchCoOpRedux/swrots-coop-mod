@@ -922,38 +922,6 @@ def cmd_levelid(a):
         r.close()
 
 
-def cmd_headroom(a):
-    """Reads the headroom table of the headroom diagnostic build (free memory per level) and prints it; appends it to logs\\headroom.txt."""
-    r = Rsp(a.host, a.port)
-    try:
-        r.connect_handshake()
-        blk = r.read(num(a.base), 19 * 4 + 22 * 36)
-        if blk is None or struct.unpack_from("<I", blk, 0)[0] != 0x44414548:
-            raise SystemExit("the headroom block is not at %s (is this the headroom build, and is the game running?)" % a.base)
-        h = struct.unpack_from("<19I", blk, 0)
-        kb = lambda p: ("%d KB" % (p * 4)) if p else "-"
-        lines = ["time %s   console total %s   free right now %s   lowest ever %s (slot %d)   most free in menus %s" % (
-                 time.strftime("%Y-%m-%d %H:%M:%S"), kb(h[6]), kb(h[9]), kb(h[15]), h[16], kb(h[17])),
-                 "level   first(after load)   lowest   highest   P2 before -> after (P2 lowest)"]
-        for i in range(22):
-            first, mn, mx, last, p2b, p2a, p2m = struct.unpack_from("<7I", blk, 76 + i * 36 + 4)
-            n = struct.unpack_from("<I", blk, 76 + i * 36)[0]
-            if not n:
-                continue
-            name = "L%d" % i if i < 20 else ("L?" if i == 20 else "menu")
-            row = "%-5s  %-16s  %-8s %-8s" % (name, kb(first), kb(mn), kb(mx))
-            if p2a:
-                row += "  %s -> %s (%s)" % (kb(p2b), kb(p2a), kb(p2m))
-            lines.append(row)
-        here = os.path.dirname(os.path.abspath(__file__))
-        os.makedirs(os.path.join(here, "logs"), exist_ok=True)
-        with open(os.path.join(here, "logs", "headroom.txt"), "a") as f:
-            f.write("\n".join(lines) + "\n\n")
-        say("\n".join(lines))
-    finally:
-        r.close()
-
-
 def cmd_ramdump(a):
     """Saves all of the guest's RAM (64 MB) to logs\\ram_<note>.bin.gz so it can be studied offline. Read only; the game is stopped for the
     few seconds it takes and runs on afterwards. Unreadable pages are stored as zeros."""
@@ -1085,10 +1053,6 @@ def main():
     p.add_argument("--base", default="0x976000")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=1234)
-    p = sub.add_parser("headroom", help="print the free-memory table of the headroom diagnostic build")
-    p.add_argument("--base", default="0x976D80")
-    p.add_argument("--host", default="127.0.0.1")
-    p.add_argument("--port", type=int, default=1234)
     p = sub.add_parser("ramdump", help="save all of RAM (read only) to logs/ram_<note>_<time>.bin.gz")
     p.add_argument("note", nargs="?", default="", help="what is going on, e.g. 'level7_p2_in'")
     p.add_argument("--top", default="0x4000000", help="how many bytes to save (default 64 MB)")
@@ -1114,11 +1078,6 @@ def main():
     if a.cmd == "ramdump":
         try:
             return cmd_ramdump(a)
-        except GdbError as e:
-            raise SystemExit(str(e))
-    if a.cmd == "headroom":
-        try:
-            return cmd_headroom(a)
         except GdbError as e:
             raise SystemExit(str(e))
     if a.cmd == "scriptid":

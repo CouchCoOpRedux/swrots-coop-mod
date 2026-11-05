@@ -71,6 +71,8 @@ def main():
         (0x178070, bytes.fromhex("a1cc4369005668" + "8b7068")[:6] + bytes.fromhex("8b7068"), "coop_hook_pressed"),  # P5 / P15 Force-script fix
         (0x129990, bytes.fromhex("558bec83e4f083ec4c"), "coop_hook_cam"),  # P13 shared camera: master camera SetTransform
         (0x211C30, bytes.fromhex("a1f493610085c0"), "coop_hook_fov"),  # P13 renderer field of view (read only)
+        (0x14F8A2, bytes.fromhex("84db740c5f"), "coop_cb_force"),  # player two's skin: declare <name>_var01.stx when the level does not ship it
+        (0x527F0, bytes.fromhex("81ec90000000"), "coop_read_hook"),  # player two's skin: the packer's read serves the recoloured texture from memory
     ]
     calls_other = [  # (VA of an E8 call, the target it must have now, symbol to call instead)
         (0x269325, 0x269230, "coop_xp_stub"),  # a kill's experience: player two's goes to player one
@@ -94,6 +96,13 @@ def main():
         (0xFF2AC, "coop_pain"),  # IPain / IElectricalDischargeZone: can the object be hurt
     ]
     touched = {}
+    datas = [(0x648F0C, bytes(4), struct.pack("<I", 0x57B6F0)), (0x648B1C, bytes(4), struct.pack("<I", 0x57B6F0))]  # texture-set suffix "_var01" (the game's own string) in the costume lists of Obi-Wan (0x648F0C) and Anakin (0x648B1C)
+    for va, old, new in datas:
+        off, sec = va2off(va)
+        if bytes(xbe[off:off + 4]) != old:
+            sys.exit("refusing: data at %#x is not the expected one" % va)
+        xbe[off:off + 4] = new
+        touched[id(sec)] = sec
     for va, orig, sym in hooks:
         if sym not in syms:
             sys.exit("refusing: the blob has no %s (a stale or incomplete build: check the linker output)" % sym)
