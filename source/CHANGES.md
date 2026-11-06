@@ -11,14 +11,14 @@ overlap when the diagnostics blob outgrows its slot at `0x96E000..0x976000`), th
 The patcher refuses to patch if the original bytes at a site are not the expected ones or if the blob lacks any of the
 hook / call symbols (a stale blob used to be skipped silently).
 
-The released version 36 changes no behaviour compared with version 35: it is the cleanup release (comments, the header's patch index, this file). The compiled code is byte-identical to version 35 apart from the version number in the debug block. The skin work (P39 to P41) comes after it and is not in the released v0.36 files.
+Version 38 (the second release) adds player two's alternate appearance on the spawn levels (P39 to P42: recoloured skins, saber colours) and a stronger Yoda on level 15 (P43), and removes the diagnostics used to develop them. Version 36, the first release, was the cleanup release (comments, the header's patch index, this file) and changed no behaviour compared with version 35.
 
-Player-two skins, saber colours and Yoda's Force (P39 to P43, below) add two code hooks, two data words and a small config block (`g_skincfg`, `0x977800`, 216 bytes). The source of the skin code is in `coop_m1.c` (the last section) and `patch_xbe.py`.
+The additions of version 38 (P39 to P43, below) add three code hooks (the skin's declare and read hooks, Yoda's regeneration), two data words and a small config block (`g_skincfg`, `0x977800`, 216 bytes). The source of the skin code is in `coop_m1.c` (the last section) and `patch_xbe.py`.
 
 Source tags: **PC port** = idea or addresses from SWROTS-PC (jedijosh920/swrots-pc, GPLv3);
 **this project** = found in the original game's code and confirmed with xemu test dumps.
 
-## Where it stands (version 36)
+## Where it stands (version 38)
 
 Every story level (1 to 17) has a co-op rule and has been played through with a second controller (level 1's bridge hand-off and level 6 confirmed last). What is left is the full-playthrough
 testing with a friend, which will turn up scripted moments that need a small fix each (a row in `k_events`).
@@ -225,8 +225,8 @@ tanks, the CPU companion getting his own powers back on drop-out.
   particular length or size. Built with `sfdmux.py` (each picture starts a new PES packet, timestamps follow the retail file; remuxing the retail stream gives the same
   decoded frames and timestamps within 1 tick). The released screen is original artwork (starfield, Cinzel and Inter type, `movie/` in the release); a private version
   that keeps the game's logo and cityscape exists but is not released. The screen says "press Back": the code needs Back held for about a second (README says so).
-* Release (SWROTS (UNOFFICIAL) Co-Op Mod v0.36; the mod build number is 36): `patcher/swrots-coop-mod_patch.py` (ISO mode through extract-xiso, folder mode, xbe-only mode; checks the MD5 of default.xbe and
-  Legal_XBOX.sfd, refuses anything else, safe to run twice), `xdelta/swrots-coop-mod.xdelta` (13 KB, applies to the retail xbe), README, GPL-3.0-or-later. No game data and no
+* Release (SWROTS (UNOFFICIAL) Co-Op Mod v0.38; the mod build number is 38): `patcher/swrots-coop-mod_patch.py` (ISO mode through extract-xiso, folder mode, xbe-only mode; checks the MD5 of default.xbe and
+  Legal_XBOX.sfd, refuses anything else, safe to run twice), `xdelta/swrots-coop-mod.xdelta` (17 KB, applies to the retail xbe), README, GPL-3.0-or-later. No game data and no
   patched default.xbe are shipped. Tested here on a synthetic ISO built with extract-xiso 2.7.1: unpacked, patched, packed again, files and checksums match; not yet run on
   the real game ISO.
 

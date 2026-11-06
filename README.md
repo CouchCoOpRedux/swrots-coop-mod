@@ -17,12 +17,14 @@ This is a binary patch of the game's own executable (`default.xbe`) plus a repla
 * Player 2's combo meter is restored and all kills go towards player 1's single player save xp
 * Player 2 is tethered to Player 1 and will respawn if they go to far
 * Altered camera when co-op is enabled to keep both characters onscreen
+* Player 2 looks different from Player 1 on the levels where they are a copy of the same hero: Obi-Wan gets a brown tunic and a green lightsaber, Anakin a dark outfit and a red lightsaber (levels 7, 8, 11, 13, 14). The skins are made while the level loads from your own disc's textures, so the mod contains no game art
+* Yoda (level 15) has a bigger Force bar that refills faster
 
 ## Playing
 
 * **Join / leave:** hold **Back** on controller 2 for about 1 second, any time in a story level. Each level starts with the game's own companion, and nothing is remembered after a restart.
 * **Boss levels:** player 2 takes over the boss (levels 4, 9, 10, 12, 16, 17). The boss gets all his powers, and control goes back to the computer when player 2 leaves.
-* **Levels with no companion** (5, 7, 8, 11, 13, 14) get a second character beside player 1.
+* **Levels with no companion** (5, 7, 8, 11, 13, 14) get a second character beside player 1. On levels 7, 8, 11, 13 and 14 that character is a copy of player 1 with a different look (new skin colours and a green or red lightsaber), so you can tell them apart.
 * Joining is disabled in cutscenes and in the few scripted sections of gameplay that need one player.
 * Level by level details and status: [source/CHANGES.md](source/CHANGES.md) ("Co-op rule per level").
 
@@ -61,7 +63,7 @@ The `xdelta/swrots-coop-mod.xdelta` patch contains every byte this mod changes i
 xdelta3 -d -s default_original.xbe swrots-coop-mod.xdelta default.xbe
 ```
 
-Expected MD5s: original `6460ef37862de3af364a0563a0a18c4e`, patched `8ef778d829352457dad05d7abe785fa8`.
+Expected MD5s: original `6460ef37862de3af364a0563a0a18c4e`, patched `2c405a77c5d52acaf18abb821ccf8b23`.
 `python swrots-coop-mod_patch.py --xbe default.xbe -o patched.xbe` gives the same file without xdelta.
 
 The start-up screen is optional and separate: it only needs a replacement of `movies/Splash_Movies/Legal_XBOX.sfd`, which the patcher builds from your own file's headers. Without it the mod works the same, you just see the original legal screen.
@@ -70,7 +72,7 @@ The start-up screen is optional and separate: it only needs a replacement of `mo
 
 All 17 Story Missions can now be played with a fully functional player 2 and each level has been initially run, but a full playthrough is still in progress. The author tested in xemu 0.8.139 (Windows x86_64) and on a softmodded original Xbox (levels 1, 6 and 14 on the console). If a story moment does not seem to progress, player 2 can try dropping out (hold Back) to let the game continue; please report it as an issue. Known limits:
 
-* Level 15 (Yoda as the companion) has no saber throw; his black-button Force power works.
+* Level 15 (Yoda as the companion) has no saber throw; his black-button Force power works. To make up for it his Force bar is 1.5 times player 1's and refills twice as fast.
 * On level 12, handing a boss back to the computer in the middle of phase 2 might leave the computer without some Force powers for the rest of that fight (not observed).
 * The mod keeps a debug and script-recording block in memory on purpose (see `source/CHANGES.md`, "Left in on purpose"); it is used with `tools/xbwatch` (xemu only) to find scripted moments that need fixes.
 
@@ -88,7 +90,8 @@ Please do not attach game files, ISOs or a patched `default.xbe`.
 
 ## What exactly is changed
 
-* `default.xbe`: a new 36 KB `COOP` section is appended, the game's per-frame function gets a jump into it, and a list of hooks and call replacements is applied. Every site's original bytes are checked before patching. The complete list with the original bytes and the reason for each is in [source/CHANGES.md](source/CHANGES.md); each patch has a header comment in [source/coop_m1.c](source/coop_m1.c).
+* `default.xbe`: a new 38 KB `COOP` section is appended, the game's per-frame function gets a jump into it, and a list of hooks and call replacements is applied. Every site's original bytes are checked before patching. The complete list with the original bytes and the reason for each is in [source/CHANGES.md](source/CHANGES.md); each patch has a header comment in [source/coop_m1.c](source/coop_m1.c).
+* While playing, the mod reads (never writes) the game's own level files from `D:\pak\` to build player 2's alternate skin in memory; nothing from the game is stored in the mod or written anywhere.
 * `movies/Splash_Movies/Legal_XBOX.sfd`: the first screen, replaced by a notice (10 s: 1 s fade in, 1 s fade out). The game does not care about a movie's length.
 * Nothing else on the disc is touched.
 

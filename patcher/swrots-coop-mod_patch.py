@@ -27,9 +27,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import sfdmux
 
-VERSION = "v0.36"
+VERSION = "v0.38"
 XBE_ORIG_MD5 = "6460ef37862de3af364a0563a0a18c4e"
-XBE_PATCHED_MD5 = "8ef778d829352457dad05d7abe785fa8"
+XBE_PATCHED_MD5 = "2c405a77c5d52acaf18abb821ccf8b23"
 SFD_ORIG_MD5 = "acfd4ff8cc82ac695961d611b598bac6"
 SFD_PATCHED_MD5 = "08fe86ada567dbcc7983635abb4d52ec"
 SFD_ORIG_SIZE = 1644544

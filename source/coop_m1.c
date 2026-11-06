@@ -276,7 +276,7 @@ struct CoopDbg {
     struct SpReg spr[16];     /* +0xBF0 and the stretches of code that asked for their buttons (16 x 24 bytes); ends at 0xD70 */
 };
 _Static_assert(sizeof(struct CoopDbg) <= 0x1000, "the debug block outgrew its 4 KB slot");
-__attribute__((section(".coopdbg"))) struct CoopDbg g_dbg = { .magic = 0x504F4F43u, .version = 36 };
+__attribute__((section(".coopdbg"))) struct CoopDbg g_dbg = { .magic = 0x504F4F43u, .version = 38 };
 
 static u32 s_seen, s_nextTry, s_nextReassert;
 static u8* s_p1;
