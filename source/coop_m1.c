@@ -181,6 +181,7 @@ typedef void (FASTCALL *ObjFn)(u8* object);
 /* P24 / P25: scripted events keyed by cutscene. The cell above holds the playing cutscene's object while one plays (0 otherwise); its first word is the
  * ICutscene vtable and +4 is the cutscene's id from the level file (found with the xbwatch recorder). k_events (below) says what to do for which id. */
 #define VT_CUTSCENE      0x00599478u
+#define VT_YODA          0x005C79F8u   /* IYoda's vtable (class table 0x5C79F8, found through its name function 0x2A0700) */
 #define EVENT_QUIET_FRAMES 10           /* frames without a cutscene before it counts as ended */
 #define P1_DEAD_FRAMES   20             /* player one dead this long: player 2 may come back (a restart from a checkpoint) */
 #define KEY_L1           1              /* level keys are the user's level numbers */
@@ -299,6 +300,7 @@ static u32 s_xdiag;
 static u32 s_backHold, s_backLatch;
 static u32 s_dropped;         /* 1: player 2 chose to drop out; stays out until Back is held again */
 static u8* s_last;            /* the character let go of (taken again without a new search) */
+static u8* s_yoda; static u32 s_yodaId;   /* P43: Yoda, as the start-of-level scan found him, and the object id that already has its Force doubled */
 static u32 s_lastId;
 static u32 s_nextMatch;
 static u32 s_fails, s_spawnTried, s_spawnFrame;
@@ -819,6 +821,7 @@ static void register_p2(u8* c, u8* p1)
     s_svMaxPower = vptr((u32)c + C_MAXPOWER) ? *(float*)(c + C_MAXPOWER) : 0.0f;
     repair_transform(c);
     match_p1(c, p1);
+    { const char* yn = type_name(c); if (yn && starts_with(yn, "IYoda") && vptr((u32)c + C_MAXPOWER)) set_max(c, C_POWER, C_MAXPOWER, *(float*)(c + C_MAXPOWER) * 2.0f); }   /* P43 */
     *(i32*)(c + C_CONTROL) = K_PLAYER;
     BIND_CONTROLLER(c, 0, PLAYER2_PORT);
     *(c + C_INVINCIBLE) = 0;
@@ -1154,6 +1157,7 @@ static void forget_level(u32 now)
     s_p2 = 0; s_inactive = s_waitActive = 0; s_last = 0; s_guard = 0; s_ntrail = 0;
     s_scr = s_sub = 0; s_subParked = s_placeSub = 0; s_strat = s_wantSub = 0;
     s_key = 0xFF; s_ev = 0; s_cutDone = s_coopOver = 0; s_endCutQuiet = s_p1Dead = 0;
+    s_yoda = 0; s_yodaId = 0;
     s_scState = 0; s_scCur = 0; s_nCuts = s_nTrigs = 0; s_sigKey = 0xFF; s_aiOn = s_aiResume = 0; s_aiQuiet = 0;
     s_wState = W_SCAN; s_wLock = s_wResume = s_wSeen2 = 0; s_wTrig = s_wCut = 0; s_wCur = 0; s_wT1 = s_wQuiet = s_wDead = 0; s_subNext = 0; s_leashSc2 = 1.0f;
     s_sweep = 0; s_nhud = 0; s_dropped = 1; s_seen = now; s_nextTry = 0; s_fails = 0; s_spawnTried = 0; s_spawnObj = 0; s_lastCutscene = 0;
@@ -1357,7 +1361,7 @@ static void scan_watch(u32 now)
     if (s_scState == 2) return;
     if (s_scState == 0) {
         if (now - s_seen < SETTLE_FRAMES) return;
-        s_scState = 1; s_scCur = SWEEP_LO; s_nCuts = s_nTrigs = 0; s_nhud = 0;
+        s_scState = 1; s_scCur = SWEEP_LO; s_nCuts = s_nTrigs = 0; s_nhud = 0; s_yoda = 0;
     }
     u32 end = s_scCur + WIN_SCAN_CHUNK;
     if (end > SWEEP_HI) end = SWEEP_HI;
@@ -1370,6 +1374,7 @@ static void scan_watch(u32 now)
         if ((here & 0xFFFu) == 0xFFCu) continue;           /* the id word is in the next page */
         if (v == VT_TRIGGER_MULTI) { if (s_nTrigs < SCAN_TRIGS) { s_scTrigA[s_nTrigs] = here; s_scTrigId[s_nTrigs++] = *(u32*)(here + 4); } }
         else if (v == VT_CUTSCENE) { if (s_nCuts < SCAN_CUTS) { s_scCutA[s_nCuts] = here; s_scCutId[s_nCuts++] = *(u32*)(here + 4); } }
+        else if (v == VT_YODA) { if (!s_yoda) s_yoda = (u8*)here; }
         else if ((v == HUD_VITALS_FADE || v == HUD_PORTRAIT) && s_nhud < 12 && here + 0x14 <= ((here | 0xFFFu) + 1)) s_hud[s_nhud++] = here; /* P34 */
     }
     s_scCur = end;
@@ -1421,6 +1426,27 @@ static void win_watch(u8* p1, u32 now)
         if (++s_wDead >= P1_DEAD_FRAMES && s_wLock) { s_wDead = 0; s_wResume = 0; win_close(p1); s_wState = W_SCAN; s_scState = 0; }
     } else s_wDead = 0;
     g_dbg.spare = (u32)s_wState | ((u32)s_wLock << 4) | ((u32)s_wResume << 5);
+}
+
+/* ---- P43 Yoda has twice the Force energy
+ * Where:  the start-of-level scan (it notes the first object with IYoda's vtable, 0x5C79F8), yoda_watch (every frame), register_p2 (a take-over); no game code is patched.
+ * Was:    Yoda's own powers (the ones the game gives him) cost a lot and the bar ran dry quickly.
+ * Now:    his maximum Force and his current Force are doubled once per object (set_max keeps the filled fraction); when player two takes him, the maximum the match with
+ *         player one gives him (match_p1) is doubled as well, and what is put back on drop-out is the doubled value.
+ * Needed: Yoda on level 15 (his only level); user request after console tests.
+ * Source: this project. */
+static void yoda_watch(void)
+{
+    u8* y = s_yoda;
+    if (!y || s_scState != 2) return;
+    if (!vptr((u32)y) || !vptr((u32)y + C_MAXPOWER + 3) || *(u32*)y != VT_YODA) { s_yoda = 0; return; }
+    u32 id = *(u32*)(y + C_ID);
+    if (!id || id == s_yodaId || !is_character(y)) return;
+    float m = *(float*)(y + C_MAXPOWER);
+    if (!(m > 0.0f)) return;
+    set_max(y, C_POWER, C_MAXPOWER, m * 2.0f);
+    if (y == s_p2 && s_svMaxPower > 0.0f) s_svMaxPower *= 2.0f;
+    s_yodaId = id;
 }
 
 /* ---- P42 player two's light-saber colour
@@ -1484,6 +1510,7 @@ void coop_tick(void)
     event_watch(p1);
     saber_watch();
     scan_watch(now);
+    yoda_watch();
     win_watch(p1, now);
 #if COOP_DIAG
     sub_status();
@@ -2421,9 +2448,9 @@ static int decl_texture(const char* text, u32 stxsize)
 /* ---- Recolouring: the textures are NOT part of this mod. At the first request the original is read from the player's own level PAK on the disc, the colours of its
  * DXT blocks are shifted (hue / saturation / value, optionally only inside a rectangle) and the result is what the engine decodes. The numbers are in g_skincfg (0x977800),
  * a plain table of 32-bit words (they can be changed with a debugger while the game runs; they are read when a level asks for the texture). */
-struct SkinTex { u32 enable; i32 hue; u32 sat, val, x0, y0, x1, y1, prepared, served; };   /* hue: degrees (-180..180); sat, val: percent (100 = unchanged); the rectangle in pixels */
+struct SkinTex { u32 enable; i32 hue; u32 sat, val, x0, y0, x1, y1, prepared, served, lock; i32 hfix; };   /* hue: degrees (-180..180); sat, val: percent (100 = unchanged); the rectangle in pixels; lock: percent (0..100) of the way every colour's hue is pulled to hfix (degrees), which removes the colour noise a large saturation boost brings out */
 struct SkinCfg { u32 magic, version, flags, ntstatus; struct SkinTex t[5]; };   /* flags: bits 0-4 a part could not be read from the disc, bits 8-12 it was not the expected texture; t[0] = Obi-Wan tunic (obi_02), t[1] = Obi-Wan cloak (obiCloak), t[2] = Anakin tunic (anakin_01), t[3] = Anakin cloak (anakinCloak), t[4] = Anakin trousers (anakin_cloth) */
-__attribute__((section(".coopcfg"))) struct SkinCfg g_skincfg = { 0x46434B53u, 1, 0, 0, { { 1, 0, 330, 58, 0, 0, 256, 256, 0, 0 }, { 1, 15, 28, 200, 0, 0, 256, 256, 0, 0 }, { 1, 0, 25, 100, 0, 0, 256, 256, 0, 0 }, { 1, 0, 15, 120, 0, 0, 256, 256, 0, 0 }, { 1, 0, 12, 90, 0, 0, 256, 256, 0, 0 } } };
+__attribute__((section(".coopcfg"))) struct SkinCfg g_skincfg = { 0x46434B53u, 1, 0, 0, { { 1, 0, 280, 58, 0, 0, 256, 256, 0, 0, 100, 36 }, { 1, 15, 28, 200, 0, 0, 256, 256, 0, 0, 0, 0 }, { 1, 0, 25, 100, 0, 0, 256, 256, 0, 0, 0, 0 }, { 1, 0, 15, 120, 0, 0, 256, 256, 0, 0, 0, 0 }, { 1, 0, 12, 90, 0, 0, 256, 256, 0, 0, 0, 0 } } };
 
 /* Kernel calls, through the game's own import table (the loader fills it with the kernel's addresses). */
 #define K_NtClose      0x0055F6C0u
@@ -2472,6 +2499,7 @@ static u16 recol(u16 c, const struct SkinTex* t)
         if (h < 0) h += 1536;
     }
     h += t->hue * 1536 / 360; h %= 1536; if (h < 0) h += 1536;
+    if (t->lock) { int hf = t->hfix * 1536 / 360; hf %= 1536; if (hf < 0) hf += 1536; int dd = hf - h; if (dd > 768) dd -= 1536; if (dd < -768) dd += 1536; h += dd * (int)t->lock / 100; h %= 1536; if (h < 0) h += 1536; }
     sat = sat * (int)t->sat / 100; if (sat > 255) sat = 255;
     v = v * (int)t->val / 100; if (v > 255) v = 255;
     int sec = h / 256, f = h % 256;
