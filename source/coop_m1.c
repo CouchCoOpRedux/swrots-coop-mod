@@ -181,6 +181,7 @@ typedef void (FASTCALL *ObjFn)(u8* object);
 /* P24 / P25: scripted events keyed by cutscene. The cell above holds the playing cutscene's object while one plays (0 otherwise); its first word is the
  * ICutscene vtable and +4 is the cutscene's id from the level file (found with the xbwatch recorder). k_events (below) says what to do for which id. */
 #define VT_CUTSCENE      0x00599478u
+#define YODA_MAX_X 1.5f   /* P43: Yoda's maximum Force as a multiple of player one's */
 #define VT_YODA          0x005C79F8u   /* IYoda's vtable (class table 0x5C79F8, found through its name function 0x2A0700) */
 #define EVENT_QUIET_FRAMES 10           /* frames without a cutscene before it counts as ended */
 #define P1_DEAD_FRAMES   20             /* player one dead this long: player 2 may come back (a restart from a checkpoint) */
@@ -821,7 +822,7 @@ static void register_p2(u8* c, u8* p1)
     s_svMaxPower = vptr((u32)c + C_MAXPOWER) ? *(float*)(c + C_MAXPOWER) : 0.0f;
     repair_transform(c);
     match_p1(c, p1);
-    { const char* yn = type_name(c); if (yn && starts_with(yn, "IYoda") && vptr((u32)c + C_MAXPOWER)) set_max(c, C_POWER, C_MAXPOWER, *(float*)(c + C_MAXPOWER) * 2.0f); }   /* P43 */
+    { const char* yn = type_name(c); if (yn && starts_with(yn, "IYoda") && vptr((u32)c + C_MAXPOWER)) set_max(c, C_POWER, C_MAXPOWER, *(float*)(c + C_MAXPOWER) * YODA_MAX_X); }   /* P43 */
     *(i32*)(c + C_CONTROL) = K_PLAYER;
     BIND_CONTROLLER(c, 0, PLAYER2_PORT);
     *(c + C_INVINCIBLE) = 0;
@@ -1428,26 +1429,46 @@ static void win_watch(u8* p1, u32 now)
     g_dbg.spare = (u32)s_wState | ((u32)s_wLock << 4) | ((u32)s_wResume << 5);
 }
 
-/* ---- P43 Yoda has twice the Force energy
- * Where:  the start-of-level scan (it notes the first object with IYoda's vtable, 0x5C79F8), yoda_watch (every frame), register_p2 (a take-over); no game code is patched.
- * Was:    Yoda's own powers (the ones the game gives him) cost a lot and the bar ran dry quickly.
- * Now:    his maximum Force and his current Force are doubled once per object (set_max keeps the filled fraction); when player two takes him, the maximum the match with
- *         player one gives him (match_p1) is doubled as well, and what is put back on drop-out is the doubled value.
+/* ---- P43 Yoda: a bigger Force bar that refills faster
+ * Where:  the start-of-level scan (notes the first object with IYoda's vtable, 0x5C79F8), yoda_watch (every frame), register_p2 (a take-over), and a hook at 0x2809E9 inside
+ *         the game's per-frame Force regeneration (0x280990: if the character is not using a Force power and has less than the maximum, power += rate * frame time;
+ *         the rate is a constant shared by everyone, 0x5B1374; the hook is the `mulss 0xC(%esp),%xmm0` that applies the frame time).
+ * Was:    Yoda's own powers (the ones the game gives him) cost a lot, the bar ran dry and refilled at everyone's slow rate.
+ * Now:    his maximum Force is 1.5 times player one's (YODA_MAX_X; the filled fraction is kept), and the hook doubles the regeneration rate of a character whose vtable is
+ *         IYoda's (YODA_REGEN_X = 2: `addss %xmm0,%xmm0`). When player two takes him, the maximum the match with player one gives him (match_p1) is multiplied by 1.5 as
+ *         well, and what is put back on drop-out is the 1.5 x value.
  * Needed: Yoda on level 15 (his only level); user request after console tests.
- * Source: this project. */
-static void yoda_watch(void)
+ * Source: this project (the regeneration code at 0x280990). */
+static void yoda_max(u8* y, u8* p1)
+{
+    if (!p1 || !vptr((u32)p1 + C_MAXPOWER + 3)) return;
+    float m = *(float*)(p1 + C_MAXPOWER);
+    if (m > 0.0f) set_max(y, C_POWER, C_MAXPOWER, m * YODA_MAX_X);
+}
+static void yoda_watch(u8* p1)
 {
     u8* y = s_yoda;
     if (!y || s_scState != 2) return;
     if (!vptr((u32)y) || !vptr((u32)y + C_MAXPOWER + 3) || *(u32*)y != VT_YODA) { s_yoda = 0; return; }
     u32 id = *(u32*)(y + C_ID);
     if (!id || id == s_yodaId || !is_character(y)) return;
-    float m = *(float*)(y + C_MAXPOWER);
-    if (!(m > 0.0f)) return;
-    set_max(y, C_POWER, C_MAXPOWER, m * 2.0f);
-    if (y == s_p2 && s_svMaxPower > 0.0f) s_svMaxPower *= 2.0f;
+    if (y == s_p2) {                       /* taken before the scan finished: register_p2 already set the maximum; what is given back must be the 1.5 x too */
+        if (vptr((u32)p1 + C_MAXPOWER + 3) && *(float*)(p1 + C_MAXPOWER) > 0.0f) s_svMaxPower = *(float*)(p1 + C_MAXPOWER) * YODA_MAX_X;
+    } else yoda_max(y, p1);
     s_yodaId = id;
 }
+__asm__(
+    ".text\n"
+    ".globl coop_yoda_regen\n"
+    "coop_yoda_regen:\n"                 /* 0x2809E9: movss rate -> xmm0, ESI = the character, [esp+0xC] = frame time */
+    "    cmpl $0x5C79F8, (%esi)\n"
+    "    jne 1f\n"
+    "    addss %xmm0, %xmm0\n"            /* Yoda: twice the rate */
+    "1:\n"
+    "    mulss 0xc(%esp), %xmm0\n"       /* the displaced instruction */
+    "    pushl $0x2809EF\n"
+    "    ret\n"
+    ".text\n");
 
 /* ---- P42 player two's light-saber colour
  * Where:  the spawned character's light saber: the character holds it at +0x1080 (the cinematic events' "saber of character n" is [character + (0x84 + n) * 32]), the
@@ -1510,7 +1531,7 @@ void coop_tick(void)
     event_watch(p1);
     saber_watch();
     scan_watch(now);
-    yoda_watch();
+    yoda_watch(p1);
     win_watch(p1, now);
 #if COOP_DIAG
     sub_status();

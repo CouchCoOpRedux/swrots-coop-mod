@@ -72,6 +72,7 @@ def main():
         (0x129990, bytes.fromhex("558bec83e4f083ec4c"), "coop_hook_cam"),  # P13 shared camera: master camera SetTransform
         (0x211C30, bytes.fromhex("a1f493610085c0"), "coop_hook_fov"),  # P13 renderer field of view (read only)
         (0x14F8A2, bytes.fromhex("84db740c5f"), "coop_cb_force"),  # player two's skin: declare <name>_var01.stx when the level does not ship it
+        (0x2809E9, bytes.fromhex("f3 0f 59 44 24 0c".replace(" ", "")), "coop_yoda_regen"),  # P43: Yoda refills his Force twice as fast
         (0x527F0, bytes.fromhex("81ec90000000"), "coop_read_hook"),  # player two's skin: the packer's read serves the recoloured texture from memory
     ]
     calls_other = [  # (VA of an E8 call, the target it must have now, symbol to call instead)
